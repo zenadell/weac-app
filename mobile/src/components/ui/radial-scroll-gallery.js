@@ -1,47 +1,63 @@
 import React from 'react';
 import { View, Dimensions } from 'react-native';
-import Animated, { useAnimatedStyle, interpolate } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
 /**
  * RadialScrollGallery
- * React Native implementation of a scroll-driven radial gallery.
- * Maps the provided `scrollY` shared value to a rotation effect.
+ * 
+ * A pinned, rotating wheel gallery for React Native.
+ * Uses `scrollY` to drive rotation, while pinning the container 
+ * so it stays in the viewport during the scroll.
  */
 export function RadialScrollGallery({ 
   children, 
   scrollY, 
-  radius = width * 0.8, // Default radius based on screen width
-  itemSize = 100, 
-  visiblePercentage = 50 
+  radius = width * 0.55, // Adjusted for mobile screens
+  itemSize = 140, 
 }) {
   const childrenArray = React.Children.toArray(children);
   const count = childrenArray.length;
   const angleStep = (2 * Math.PI) / count;
 
+  // Pin the container by translating it downwards by the exact amount the user scrolled
+  // We only pin it once it reaches the top of the screen (approx offset 150)
+  const pinStyle = useAnimatedStyle(() => {
+    // Keep it pinned by countering the scroll offset
+    const translateY = Math.max(0, scrollY.value);
+    return {
+      transform: [{ translateY }],
+    };
+  });
+
   // Main container rotation based on scroll
   const containerStyle = useAnimatedStyle(() => {
-    // 1000px of scroll = 360deg rotation (1 full circle)
-    const rotation = interpolate(scrollY.value, [0, 1000], [0, 360]);
+    // 1500px of scroll = 360deg rotation
+    const rotation = interpolate(
+      scrollY.value, 
+      [0, 1500], 
+      [0, 360],
+      Extrapolation.EXTEND
+    );
     return {
       transform: [{ rotate: `${rotation}deg` }],
     };
   });
 
   return (
-    <View style={{ 
+    <Animated.View style={[{ 
       width: '100%', 
-      height: radius * (visiblePercentage / 100) * 2 + itemSize, 
+      height: radius * 2 + itemSize * 2, 
       alignItems: 'center', 
-      overflow: 'hidden' 
-    }}>
+      justifyContent: 'center',
+    }, pinStyle]}>
+      
       <Animated.View style={[
         {
           width: radius * 2,
           height: radius * 2,
-          position: 'absolute',
-          top: itemSize / 2, // Push it down so the top items are visible
+          position: 'relative',
         },
         containerStyle
       ]}>
@@ -55,14 +71,34 @@ export function RadialScrollGallery({
 
           // Counter-rotate each item so they stay upright
           const itemStyle = useAnimatedStyle(() => {
-            const rotation = interpolate(scrollY.value, [0, 1000], [0, -360]);
+            const rotation = interpolate(
+              scrollY.value, 
+              [0, 1500], 
+              [0, -360],
+              Extrapolation.EXTEND
+            );
+            
+            // Highlight the item closest to the top (12 o'clock)
+            // Calculate current global angle of this item
+            const currentAngleDeg = (rotation + (angle * 180 / Math.PI)) % 360;
+            const normalizedAngle = currentAngleDeg < 0 ? currentAngleDeg + 360 : currentAngleDeg;
+            
+            // The item at the top is at 0 degrees (or 360)
+            const distFromTop = Math.min(normalizedAngle, 360 - normalizedAngle);
+            const scale = interpolate(distFromTop, [0, 45, 90], [1.1, 0.8, 0.6], Extrapolation.CLAMP);
+            const opacity = interpolate(distFromTop, [0, 60, 120], [1, 0.5, 0], Extrapolation.CLAMP);
+
             return {
               position: 'absolute',
               left: x,
               top: y,
               width: itemSize,
               height: itemSize,
-              transform: [{ rotate: `${rotation}deg` }],
+              opacity,
+              transform: [
+                { rotate: `${rotation}deg` },
+                { scale }
+              ],
             };
           });
 
@@ -73,6 +109,7 @@ export function RadialScrollGallery({
           );
         })}
       </Animated.View>
-    </View>
+
+    </Animated.View>
   );
 }

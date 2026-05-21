@@ -38,26 +38,25 @@ export default function VaultScreen() {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false} 
-          contentContainerStyle={{ paddingBottom: 300, paddingTop: 64 }}
+          contentContainerStyle={{ paddingBottom: 1200, paddingTop: 64 }}
         >
-          <View className="px-6 mb-8 items-center">
+          <View className="px-6 mb-8 items-center z-20">
             <Text className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
               The Vault
             </Text>
-            <Text className="text-[3rem] font-black tracking-tight text-white leading-none text-center">
+            <Text className="text-[3.5rem] font-black tracking-tight text-white leading-none text-center">
               Your Relics
             </Text>
-            <Text className="mt-4 text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-center">
-              ↓ Scroll to rotate
+            <Text className="mt-4 text-[13px] font-bold text-primary uppercase tracking-widest text-center animate-bounce">
+              ↓ Scroll to inspect
             </Text>
           </View>
 
-          {/* Radial Scroll Gallery Component */}
+          {/* Pinned Radial Scroll Gallery Component */}
           <RadialScrollGallery 
             scrollY={scrollY} 
-            radius={width * 0.9} 
-            itemSize={160} 
-            visiblePercentage={45}
+            radius={width * 0.45} 
+            itemSize={180} 
           >
             {allCards.map((c, i) => (
               <Pressable 
@@ -66,16 +65,15 @@ export default function VaultScreen() {
                 className="w-full h-full"
               >
                 <View 
-                  className="w-full h-full rounded-[24px] overflow-hidden p-4 border relative items-center justify-center"
+                  className="w-full h-full rounded-[32px] overflow-hidden p-5 border relative items-center justify-center shadow-2xl"
                   style={{ 
                     backgroundColor: c.unlocked ? c.color + "1A" : "#1C1C24",
                     borderColor: c.unlocked ? c.color + "40" : "rgba(255,255,255,0.05)",
                     opacity: c.unlocked ? 1 : 0.6,
-                    transform: [{ scale: c.unlocked ? 1 : 0.9 }]
                   }}
                 >
                   {c.unlocked && (
-                    <View className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
+                    <View className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40" />
                   )}
                   
                   {c.unlocked ? (
@@ -83,30 +81,25 @@ export default function VaultScreen() {
                       from={{ translateY: 0 }}
                       animate={{ translateY: -5 }}
                       transition={{ loop: true, type: "timing", duration: 2000 + i * 200, direction: "alternate" }}
-                      className="size-16 rounded-[16px] items-center justify-center border-2 border-white/20 mb-2"
+                      className="size-20 rounded-[20px] items-center justify-center border-2 border-white/20 mb-3"
                       style={{ backgroundColor: c.color, shadowColor: c.color, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 15 }}
                     >
-                      <c.icon size={28} color="#FFFFFF" strokeWidth={2} />
+                      <c.icon size={32} color="#FFFFFF" strokeWidth={2} />
                     </MotiView>
                   ) : (
-                    <View className="size-16 rounded-[16px] bg-[#2A2A35] border-2 border-white/5 items-center justify-center mb-2">
-                      <Text className="text-2xl font-black text-white/20">?</Text>
+                    <View className="size-20 rounded-[20px] bg-[#2A2A35] border-2 border-white/5 items-center justify-center mb-3">
+                      <Text className="text-3xl font-black text-white/20">?</Text>
                     </View>
                   )}
 
                   <View className="z-10 items-center">
-                    <Text className="text-[11px] font-black leading-tight text-white text-center" numberOfLines={2}>{c.name}</Text>
-                    <Text className="text-[9px] font-bold mt-1 text-white/50 uppercase tracking-widest">{c.subj}</Text>
+                    <Text className="text-[14px] font-black leading-tight text-white text-center" numberOfLines={2}>{c.name}</Text>
+                    <Text className="text-[10px] font-bold mt-2 text-white/50 uppercase tracking-widest">{c.subj}</Text>
                   </View>
                 </View>
               </Pressable>
             ))}
           </RadialScrollGallery>
-
-          <View className="px-6 mt-12 items-center opacity-30">
-             <Text className="text-xl font-black text-white uppercase tracking-widest">Keep scrolling</Text>
-             <Text className="text-[10px] mt-2 font-bold text-white uppercase tracking-widest">More relics locked</Text>
-          </View>
         </Animated.ScrollView>
 
         {/* Details Modal */}
