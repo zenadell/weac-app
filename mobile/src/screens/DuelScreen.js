@@ -12,6 +12,7 @@ import { API } from "../services/api";
 import { MotiPressable } from "../components/primitives/MotiPressable";
 import { NumberRoll } from "../components/motion/NumberRoll";
 import { play } from "../lib/sounds";
+import { ExpandingAvatarRing } from "../components/ui/expanding-avatar-ring";
 
 const { width } = Dimensions.get("window");
 
@@ -135,42 +136,13 @@ export default function DuelScreen() {
 
 function Matchmaking() {
   return (
-    <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 items-center justify-center px-6">
-      <View className="relative size-72 items-center justify-center">
-        {/* Pulsing Radar Rings */}
-        {[0, 1, 2, 3].map((i) => (
-          <MotiView
-            key={i}
-            from={{ scale: 0.5, opacity: 1 }}
-            animate={{ scale: 2, opacity: 0 }}
-            transition={{ loop: true, type: "timing", duration: 2000, delay: i * 500 }}
-            className="absolute inset-0 rounded-full border-2 border-primary"
-          />
-        ))}
-        
-        {/* Opponent Avatar Pop */}
-        <MotiView
-          from={{ scale: 0, rotate: "45deg" }} animate={{ scale: 1, rotate: "0deg" }}
-          transition={{ type: "spring", delay: 1500, damping: 12 }}
-          className="absolute -top-6 right-6 size-20 rounded-3xl bg-purple items-center justify-center border-4 border-[#121214] z-20 shadow-2xl"
-        >
-           <Text className="text-3xl font-black text-white">C</Text>
-        </MotiView>
-        
-        {/* Central Core */}
-        <MotiView from={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", damping: 15 }} className="z-10">
-          <View className="size-[140px] bg-primary items-center justify-center rounded-full border-8 border-[#121214]">
-            <Zap size={56} color="#FFFFFF" fill="#FFFFFF" />
-          </View>
-        </MotiView>
-      </View>
-
-      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 400 }} className="mt-20 items-center">
-        <Text className="text-[2.5rem] font-black tracking-tight leading-none text-white">Versus</Text>
-        <Text className="mt-4 text-center text-[15px] font-bold text-muted-foreground uppercase tracking-widest px-8">
-          Locating worthy opponent
-        </Text>
-      </MotiView>
+    <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 items-center justify-center">
+      <ExpandingAvatarRing 
+        isActive={true} 
+        centerTitle="Versus"
+        centerSubtitle="Locating worthy opponent"
+        accentColor="#FA675E"
+      />
     </MotiView>
   );
 }
