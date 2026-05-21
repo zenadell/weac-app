@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: waecprep-api
+    runtime: python
+    buildCommand: pip install -r requirements_cloud.txt
+    startCommand: uvicorn api.cloud_main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        value: https://wbxyakpfjwtoxwqefjap.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndieHlha3Bmand0b3h3cWVmamFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTc1MTAsImV4cCI6MjA5NDM3MzUxMH0.9PkScP4sj8hLi0w3uDzdp8Z63dLan7mpUfaDGyDm1vI

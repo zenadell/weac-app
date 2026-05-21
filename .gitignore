@@ -1,0 +1,23 @@
+# Node
+node_modules/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+
+# Expo / React Native
+mobile/node_modules/
+mobile/.expo/
+mobile/web-build/
+mobile/dist/
+mobile/*.jks
+mobile/*.p8
+mobile/*.p12
+mobile/*.key
+mobile/*.mobileprovision
+
+# macOS
+.DS_Store

@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "WAECPrep",
+    "slug": "waecprep",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f0f1a"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#6C63FF"
+      },
+      "package": "com.waecprep.app",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.waecprep.app"
+    },
+    "extra": {
+      "supabaseUrl": "https://wbxyakpfjwtoxwqefjap.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndieHlha3Bmand0b3h3cWVmamFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTc1MTAsImV4cCI6MjA5NDM3MzUxMH0.9PkScP4sj8hLi0w3uDzdp8Z63dLan7mpUfaDGyDm1vI",
+      "apiUrl": "https://waecprep-api.onrender.com",
+      "eas": {
+        "projectId": "57cc8d94-afa8-41d1-9cae-53d8bf742947"
+      }
+    },
+    "owner": "templeton_dc",
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
