@@ -1,46 +1,26 @@
-// 1:1 port of src/routes/duel.tsx
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Dimensions } from "react-native";
 import { MotiView, MotiImage, AnimatePresence } from "moti";
 import { useNavigation } from "@react-navigation/native";
-import { ArrowLeft, Share2 } from "lucide-react-native";
+import { ArrowLeft, Share2, Target, Zap, ShieldAlert, Award } from "lucide-react-native";
 import AppShell from "../components/AppShell";
 import PageTransition from "../components/PageTransition";
 import RoastCard from "../components/RoastCard";
-import Gradient from "../components/Gradient";
 import { celebrate } from "../lib/confetti";
 import { useGame } from "../lib/game-store";
 import { API } from "../services/api";
-import swords from "../../assets/lovable/swords.png";
 import { MotiPressable } from "../components/primitives/MotiPressable";
 import { NumberRoll } from "../components/motion/NumberRoll";
 import { play } from "../lib/sounds";
-import LottieView from "lottie-react-native";
 
-// Fallback if Supabase is unreachable. Same shape the screen uses.
+const { width } = Dimensions.get("window");
+
 const FALLBACK_QUESTIONS = [
-  {
-    text: "A composite fruit is formed from",
-    options: ["A single flower with one carpel", "An inflorescence", "A single flower with many carpels", "A fleshy receptacle"],
-    correct: 1,
-    subject: "Biology",
-  },
-  {
-    text: "Which of the following is not a function of the liver?",
-    options: ["Deamination of proteins", "Production of bile", "Secretion of insulin", "Storage of iron"],
-    correct: 2,
-    subject: "Biology",
-  },
-  {
-    text: "In mammals, the organ directly on top of the kidney is the",
-    options: ["Adrenal gland", "Prostate gland", "Pancreas", "Thyroid gland"],
-    correct: 0,
-    subject: "Biology",
-  },
+  { text: "A composite fruit is formed from", options: ["A single flower with one carpel", "An inflorescence", "A single flower with many carpels", "A fleshy receptacle"], correct: 1, subject: "Biology" },
+  { text: "Which of the following is not a function of the liver?", options: ["Deamination of proteins", "Production of bile", "Secretion of insulin", "Storage of iron"], correct: 2, subject: "Biology" },
+  { text: "In mammals, the organ directly on top of the kidney is the", options: ["Adrenal gland", "Prostate gland", "Pancreas", "Thyroid gland"], correct: 0, subject: "Biology" },
 ];
 
-// Convert Supabase row → DuelScreen's expected shape.
-// Supabase has options as object {A,B,C,D,E?} and answer as letter "A".
 function normalize(row) {
   const opts = row.options || {};
   const letters = ["A", "B", "C", "D", "E"].filter((k) => opts[k]);
@@ -65,36 +45,26 @@ export default function DuelScreen() {
   const [qIndex, setQIndex] = useState(0);
   const [questions, setQuestions] = useState(FALLBACK_QUESTIONS);
 
-  // Pull real exam questions from Supabase for the user's preferred subject
   useEffect(() => {
     const subject = profile?.subjects?.[0] || "Biology";
-    API.getQuestions(subject, undefined, 12)
-      .then((rows) => {
-        if (rows?.length) {
-          const normalized = rows
-            .map(normalize)
-            .filter((q) => q.text && q.options.length >= 2)
-            .sort(() => Math.random() - 0.5);
-          if (normalized.length) setQuestions(normalized);
-        }
-      })
-      .catch(() => {/* keep fallback */});
+    API.getQuestions(subject, undefined, 12).then((rows) => {
+      if (rows?.length) {
+        const normalized = rows.map(normalize).filter((q) => q.text && q.options.length >= 2).sort(() => Math.random() - 0.5);
+        if (normalized.length) setQuestions(normalized);
+      }
+    }).catch(() => {});
   }, [profile?.subjects?.[0]]);
 
   useEffect(() => {
     if (phase === "matching") {
       play("match-found");
-      const t = setTimeout(() => setPhase("playing"), 2800);
+      const t = setTimeout(() => setPhase("playing"), 3000);
       return () => clearTimeout(t);
     }
     if (phase === "playing") {
       const t = setInterval(() => {
         setTime((s) => {
-          if (s <= 1) {
-            clearInterval(t);
-            setPhase("result");
-            return 0;
-          }
+          if (s <= 1) { clearInterval(t); setPhase("result"); return 0; }
           if (s <= 11) play("tick-clock");
           return s - 1;
         });
@@ -107,16 +77,8 @@ export default function DuelScreen() {
       addXp(won ? 24 : 8);
       addCoins(won ? 40 : 10);
       if (won) progressQuest("q1", 1);
-      
       if (recordMatch) {
-        recordMatch({
-          opp: "Chad_12X",
-          subject: profile?.subjects?.[0] || "Biology",
-          my: myScore,
-          oppScore: oppScore,
-          won,
-          ts: Date.now()
-        });
+        recordMatch({ opp: "Chad_12X", subject: profile?.subjects?.[0] || "Biology", my: myScore, oppScore, won, ts: Date.now() });
       }
     }
   }, [phase]);
@@ -125,18 +87,14 @@ export default function DuelScreen() {
     if (selected !== null) return;
     const currentQ = questions[qIndex % questions.length];
     setSelected(i);
-    
     if (i === currentQ.correct) {
-      play("correct");
-      setMyScore((s) => s + 2);
+      play("correct"); setMyScore((s) => s + 2);
     } else {
       play("wrong");
     }
-
     setTimeout(() => {
-      setSelected(null);
-      setQIndex((q) => q + 1);
-    }, 1200);
+      setSelected(null); setQIndex((q) => q + 1);
+    }, 1000);
   };
 
   const currentQ = questions[qIndex % questions.length];
@@ -144,37 +102,32 @@ export default function DuelScreen() {
   return (
     <AppShell hideNav>
       <PageTransition>
-        <View className="flex-row items-center justify-between px-6 pt-12 pb-4">
-          <MotiPressable
-            onPress={() => navigation.navigate("Home")}
-            className="size-11 items-center justify-center rounded-2xl bg-white border border-black/5"
-            style={shadowSoft}
-          >
-            <ArrowLeft size={20} color="#1B1A2E" strokeWidth={2.4} />
-          </MotiPressable>
-          <Text className="text-sm font-semibold text-muted-foreground">
-            {phase === "playing" ? `Round ${qIndex + 1}` : phase === "result" ? "Match complete" : "Finding opponent"}
-          </Text>
-          <MotiPressable className="size-11 items-center justify-center rounded-2xl bg-white border border-black/5" style={shadowSoft}>
-            <Share2 size={20} color="#1B1A2E" strokeWidth={2.4} />
-          </MotiPressable>
-        </View>
+        <View className="flex-1 bg-[#121214]">
+          <View className="flex-row items-center justify-between px-6 pt-16 pb-4">
+            <MotiPressable
+              onPress={() => navigation.navigate("Home")}
+              className="size-12 items-center justify-center rounded-2xl bg-[#1C1C24] border border-white/5"
+            >
+              <ArrowLeft size={20} color="#FFFFFF" strokeWidth={2.4} />
+            </MotiPressable>
+            <View className="bg-primary/20 px-4 py-1.5 rounded-full border border-primary/30">
+              <Text className="text-[11px] font-black uppercase tracking-widest text-primary">
+                {phase === "playing" ? `Round ${qIndex + 1}` : phase === "result" ? "Match Complete" : "Searching"}
+              </Text>
+            </View>
+            <MotiPressable className="size-12 items-center justify-center rounded-2xl bg-[#1C1C24] border border-white/5">
+              <Share2 size={20} color="#FFFFFF" strokeWidth={2.4} />
+            </MotiPressable>
+          </View>
 
-        <AnimatePresence exitBeforeEnter>
-          {phase === "matching" && <Matchmaking key="m" />}
-          {phase === "playing" && (
-            <Playing
-              key="p"
-              time={time}
-              question={currentQ}
-              selected={selected}
-              onSelect={handleSelect}
-              myScore={myScore}
-              oppScore={oppScore}
-            />
-          )}
-          {phase === "result" && <Result key="r" myScore={myScore} oppScore={oppScore} onShare={() => navigation.navigate("Home")} />}
-        </AnimatePresence>
+          <AnimatePresence exitBeforeEnter>
+            {phase === "matching" && <Matchmaking key="m" />}
+            {phase === "playing" && (
+              <Playing key="p" time={time} question={currentQ} selected={selected} onSelect={handleSelect} myScore={myScore} oppScore={oppScore} />
+            )}
+            {phase === "result" && <Result key="r" myScore={myScore} oppScore={oppScore} onShare={() => navigation.navigate("Home")} />}
+          </AnimatePresence>
+        </View>
       </PageTransition>
     </AppShell>
   );
@@ -182,108 +135,88 @@ export default function DuelScreen() {
 
 function Matchmaking() {
   return (
-    <MotiView
-      from={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="flex-1 items-center justify-center px-6"
-    >
-      <View className="relative size-64 items-center justify-center mt-8">
+    <MotiView from={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 items-center justify-center px-6">
+      <View className="relative size-72 items-center justify-center">
+        {/* Pulsing Radar Rings */}
         {[0, 1, 2, 3].map((i) => (
           <MotiView
             key={i}
-            from={{ scale: 0.8, opacity: 0.8 }}
-            animate={{ scale: 1.8, opacity: 0 }}
-            transition={{ loop: true, type: "timing", duration: 3000, delay: i * 750 }}
-            className="absolute inset-0 rounded-full border border-lilac"
+            from={{ scale: 0.5, opacity: 1 }}
+            animate={{ scale: 2, opacity: 0 }}
+            transition={{ loop: true, type: "timing", duration: 2000, delay: i * 500 }}
+            className="absolute inset-0 rounded-full border-2 border-primary"
           />
         ))}
         
-        {/* Floating Avatar 1 */}
+        {/* Opponent Avatar Pop */}
         <MotiView
-          from={{ translateY: -10 }} animate={{ translateY: 10 }}
-          transition={{ loop: true, type: "timing", duration: 2500, direction: "alternate" }}
-          className="absolute -top-4 -left-4 size-14 rounded-full bg-peach border-4 border-white shadow-lg"
-        />
-
-        {/* Floating Avatar 2 */}
-        <MotiView
-          from={{ translateY: 10 }} animate={{ translateY: -10 }}
-          transition={{ loop: true, type: "timing", duration: 2800, direction: "alternate" }}
-          className="absolute bottom-4 -right-4 size-16 rounded-full bg-sky border-4 border-white shadow-lg"
-        />
+          from={{ scale: 0, rotate: "45deg" }} animate={{ scale: 1, rotate: "0deg" }}
+          transition={{ type: "spring", delay: 1500, damping: 12 }}
+          className="absolute -top-6 right-6 size-20 rounded-3xl bg-purple items-center justify-center border-4 border-[#121214] z-20 shadow-2xl"
+        >
+           <Text className="text-3xl font-black text-white">C</Text>
+        </MotiView>
         
         {/* Central Core */}
-        <MotiView
-          from={{ rotate: "0deg", scale: 0.95 }} animate={{ rotate: "360deg", scale: 1.05 }}
-          transition={{ loop: true, type: "timing", duration: 15000, direction: "alternate" }}
-        >
-          <Gradient name="lilac" className="size-[140px] items-center justify-center rounded-full shadow-2xl border-4 border-white">
-            <MotiImage
-              source={swords}
-              from={{ rotate: "0deg" }} animate={{ rotate: "-360deg" }}
-              transition={{ loop: true, type: "timing", duration: 15000 }}
-              style={{ width: 80, height: 80 }}
-              resizeMode="contain"
-            />
-          </Gradient>
+        <MotiView from={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", damping: 15 }} className="z-10">
+          <View className="size-[140px] bg-primary items-center justify-center rounded-full border-8 border-[#121214]">
+            <Zap size={56} color="#FFFFFF" fill="#FFFFFF" />
+          </View>
         </MotiView>
       </View>
 
-      <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 400 }} className="mt-16 items-center">
-        <Text className="text-[2rem] font-black tracking-tight leading-tight text-ink">Searching arena</Text>
-        <Text className="mt-3 text-center text-sm font-medium text-muted-foreground px-8">
-          Locating a Biology master at your skill level to challenge you.
+      <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ delay: 400 }} className="mt-20 items-center">
+        <Text className="text-[2.5rem] font-black tracking-tight leading-none text-white">Versus</Text>
+        <Text className="mt-4 text-center text-[15px] font-bold text-muted-foreground uppercase tracking-widest px-8">
+          Locating worthy opponent
         </Text>
       </MotiView>
-      
-      <View className="mt-8 flex-row items-center gap-2">
-        {[0, 1, 2].map((i) => (
-          <MotiView
-            key={i}
-            from={{ opacity: 0.2, scale: 0.8 }} animate={{ opacity: 1, scale: 1.2 }}
-            transition={{ loop: true, type: "timing", duration: 1000, delay: i * 200, direction: "alternate" }}
-            className="size-2.5 rounded-full bg-lilac"
-          />
-        ))}
-      </View>
     </MotiView>
   );
 }
 
 function Playing({ time, question, selected, onSelect, myScore, oppScore }) {
   return (
-    <MotiView from={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="px-6">
-      {/* VS scoreboard */}
-      <View className="mb-8 flex-row items-center gap-3 rounded-[32px] bg-white p-5 border border-black/5" style={shadowSoft}>
-        <Side name="You" score={myScore} gradient="peach" />
-        <View className="items-center px-4">
-          <Text className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground mb-1">Time</Text>
-          <Text className={`text-[2rem] font-black tabular-nums ${time < 10 ? "text-coral" : "text-ink"}`}>
+    <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex-1 px-6 pt-4">
+      
+      {/* Modern Bento Scoreboard */}
+      <View className="flex-row items-center justify-between bg-[#1C1C24] p-4 rounded-[32px] border border-white/5 mb-10">
+        <View className="flex-row items-center gap-3 w-1/3">
+          <View className="size-12 rounded-[18px] bg-primary items-center justify-center">
+            <Text className="text-xl font-black text-white">Y</Text>
+          </View>
+          <NumberRoll value={myScore} className="text-2xl font-black text-white tabular-nums" />
+        </View>
+        
+        <View className="items-center justify-center flex-1">
+          <Text className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Time</Text>
+          <Text className={`text-3xl font-black tabular-nums leading-none ${time < 10 ? "text-primary" : "text-white"}`}>
             {String(time).padStart(2, "0")}
           </Text>
         </View>
-        <Side name="Chad_12X" score={oppScore} gradient="lilac" align="right" />
-      </View>
 
-      <View className="flex-row items-center gap-2 mb-4">
-        <View className="rounded-full bg-mint/30 px-3 py-1.5">
-          <Text className="text-[11px] font-extrabold uppercase tracking-wider text-teal">Biology · Round {myScore/2 + oppScore/2 + 1}</Text>
+        <View className="flex-row items-center gap-3 w-1/3 justify-end">
+          <NumberRoll value={oppScore} className="text-2xl font-black text-white tabular-nums" />
+          <View className="size-12 rounded-[18px] bg-purple items-center justify-center">
+            <Text className="text-xl font-black text-white">C</Text>
+          </View>
         </View>
       </View>
 
-      <View style={{ minHeight: 120 }}>
+      <View className="flex-1">
         <AnimatePresence exitBeforeEnter>
           <MotiView
             key={question.text}
-            from={{ opacity: 0, translateX: 15 }}
+            from={{ opacity: 0, translateX: 20 }}
             animate={{ opacity: 1, translateX: 0 }}
-            exit={{ opacity: 0, translateX: -15 }}
-            transition={{ type: "timing", duration: 250 }}
+            exit={{ opacity: 0, translateX: -20 }}
+            transition={{ type: "timing", duration: 300 }}
           >
-            <Text className="text-[1.75rem] font-bold tracking-tight leading-tight text-ink mb-8" style={{ fontSize: 28 }}>
+            <Text className="text-[2rem] font-black tracking-tight leading-tight text-white mb-10">
               {question.text}
             </Text>
 
-            <View style={{ gap: 14 }}>
+            <View style={{ gap: 16 }}>
               {question.options.map((opt, i) => {
                 const isSelected = selected === i;
                 const isCorrect = selected !== null && i === question.correct;
@@ -293,26 +226,27 @@ function Playing({ time, question, selected, onSelect, myScore, oppScore }) {
                   <MotiPressable
                     key={i}
                     onPress={() => onSelect(i)}
-                    className={`flex-row items-center gap-4 rounded-[24px] border-2 p-5 ${
-                      isCorrect ? "border-teal bg-mint/20" :
-                      isWrong ? "border-coral bg-coral/10" :
-                      isSelected ? "border-ink bg-white" :
-                      "border-transparent bg-white"
+                    className={`flex-row items-center gap-5 rounded-[28px] border-2 p-5 ${
+                      isCorrect ? "border-green bg-green/10" :
+                      isWrong ? "border-primary bg-primary/10" :
+                      isSelected ? "border-white bg-[#1C1C24]" :
+                      "border-white/5 bg-[#1C1C24]"
                     }`}
-                    style={!isCorrect && !isWrong && !isSelected ? shadowSoft : undefined}
                   >
                     <MotiView 
-                      animate={{ scale: isWrong ? 0.85 : 1 }}
+                      animate={{ scale: isWrong ? 0.9 : 1 }}
                       transition={{ type: "spring", damping: 15 }}
-                      className={`size-12 items-center justify-center rounded-[18px] ${
-                        isCorrect ? "bg-teal" : isWrong ? "bg-coral" : "bg-canvas"
+                      className={`size-14 items-center justify-center rounded-[20px] ${
+                        isCorrect ? "bg-green" : isWrong ? "bg-primary" : "bg-white/5"
                       }`}
                     >
-                      <Text className={`text-base font-black ${isCorrect || isWrong ? "text-white" : "text-ink"}`}>
+                      <Text className={`text-xl font-black ${isCorrect || isWrong ? "text-[#121214]" : "text-white/60"}`}>
                         {String.fromCharCode(65 + i)}
                       </Text>
                     </MotiView>
-                    <Text className="flex-1 text-[1.05rem] font-semibold text-ink leading-snug">{opt}</Text>
+                    <Text className={`flex-1 text-[1.1rem] font-bold leading-snug ${isCorrect ? "text-green" : isWrong ? "text-primary" : "text-white"}`}>
+                      {opt}
+                    </Text>
                   </MotiPressable>
                 );
               })}
@@ -324,63 +258,46 @@ function Playing({ time, question, selected, onSelect, myScore, oppScore }) {
   );
 }
 
-function Side({ name, score, gradient, align = "left" }) {
-  return (
-    <View className={`flex-1 flex-row items-center gap-3 ${align === "right" ? "flex-row-reverse" : ""}`}>
-      <Gradient name={gradient} className="size-[52px] rounded-[20px] border border-black/5" />
-      <View>
-        <Text className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider" style={align === "right" ? { textAlign: "right" } : undefined}>{name}</Text>
-        <NumberRoll value={score} className="text-[1.35rem] font-black tabular-nums tracking-tight text-ink" style={align === "right" ? { textAlign: "right" } : undefined} />
-      </View>
-    </View>
-  );
-}
-
 function Result({ myScore, oppScore, onShare }) {
   const won = myScore >= oppScore;
-  useEffect(() => { 
-    if (won) {
-      celebrate();
-      play("levelup");
-    }
-  }, [won]);
+  useEffect(() => { if (won) { celebrate(); play("levelup"); } }, [won]);
   return (
     <MotiView
       from={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 280, damping: 22 }}
-      className="px-6 pt-4 pb-8"
+      className="px-6 pt-10 pb-8 flex-1 items-center"
     >
-      <View className="mb-5 items-center">
-        <Text className="text-3xl font-semibold text-ink">{won ? "Victory!" : "So close."}</Text>
-        <Text className="mt-1 text-sm text-muted-foreground">
-          {won ? "+24 XP · Streak extended" : "Try again — your streak is safe"}
+      <View className="mb-10 items-center">
+        {won ? <Award size={64} color="#30C5A0" strokeWidth={1.5} /> : <ShieldAlert size={64} color="#FA675E" strokeWidth={1.5} />}
+        <Text className="text-[3.5rem] font-black tracking-tighter text-white mt-6 leading-none">
+          {won ? "Victory" : "Defeat"}
+        </Text>
+        <Text className="mt-4 text-sm font-bold uppercase tracking-widest text-muted-foreground">
+          {won ? "+24 XP · Arena Conquered" : "Try again to claim glory"}
         </Text>
       </View>
 
-      <RoastCard
-        data={{
-          winnerName: won ? "You" : "Chad_12X",
-          loserName: won ? "Chad_12X" : "You",
-          winnerScore: Math.max(myScore, oppScore),
-          loserScore: Math.min(myScore, oppScore),
-          subject: "Biology",
-          xpGained: won ? 24 : 8,
-          combo: won ? 5 : undefined,
-        }}
-        onShare={onShare}
-      />
+      <View className="w-full">
+        <RoastCard
+          data={{
+            winnerName: won ? "You" : "Chad_12X",
+            loserName: won ? "Chad_12X" : "You",
+            winnerScore: Math.max(myScore, oppScore),
+            loserScore: Math.min(myScore, oppScore),
+            subject: "Biology",
+            xpGained: won ? 24 : 8,
+            combo: won ? 5 : undefined,
+          }}
+          onShare={onShare}
+        />
+      </View>
 
       <MotiPressable
         onPress={onShare}
-        className="mt-4 h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-white border border-black/5"
-        style={shadowSoft}
+        className="mt-10 h-16 w-full flex-row items-center justify-center gap-3 rounded-full bg-white shadow-xl"
       >
-        <Share2 size={16} color="#1B1A2E" />
-        <Text className="text-sm font-semibold text-ink">Back home</Text>
+        <Text className="text-xl font-black text-[#121214]">Return to Base</Text>
       </MotiPressable>
     </MotiView>
   );
 }
-
-const shadowSoft = { shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 3 };
-const shadowPop = { shadowColor: "#000", shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.18, shadowRadius: 30, elevation: 10 };

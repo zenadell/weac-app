@@ -1,26 +1,20 @@
-// 1:1 port of src/routes/vault.tsx
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, Modal } from "react-native";
-import { MotiView, MotiImage, AnimatePresence } from "moti";
-import { X } from "lucide-react-native";
+import { View, Text, Pressable, ScrollView, Modal, Dimensions } from "react-native";
+import { MotiView, AnimatePresence } from "moti";
+import { X, Hexagon, Orbit, Award, Cpu, BookOpen, Fingerprint } from "lucide-react-native";
 import AppShell from "../components/AppShell";
 import PageTransition from "../components/PageTransition";
-import Gradient from "../components/Gradient";
 import { popBurst } from "../lib/confetti";
-import trophy from "../../assets/lovable/trophy.png";
-import dna from "../../assets/lovable/dna-helix.png";
-import atom from "../../assets/lovable/atom.png";
-import brain from "../../assets/lovable/brain.png";
-import calculator from "../../assets/lovable/calculator.png";
-import books from "../../assets/lovable/books.png";
+
+const { width } = Dimensions.get("window");
 
 const allCards = [
-  { name: "Molecular Architect", subj: "Biology", rarity: "Legendary", img: dna, gradient: "mint", unlocked: true, lore: "Awarded for 90%+ in Genetics. 1 in 240 students hold this card." },
-  { name: "Golden Scholar", subj: "Weekly MVP", rarity: "Mythic", img: trophy, gradient: "butter", unlocked: true, dark: true, lore: "Reset every Sunday. Top 1% across all schools." },
-  { name: "Atom Whisperer", subj: "Physics", rarity: "Rare", img: atom, gradient: "peach", unlocked: true, lore: "Mechanics chain of 10 perfect duels." },
-  { name: "Mind Master", subj: "Psychology", rarity: "Epic", img: brain, gradient: "rose", unlocked: true, lore: "30-day streak holder." },
-  { name: "Number Crusher", subj: "Maths", rarity: "Rare", img: calculator, gradient: "lilac", unlocked: false },
-  { name: "Word Weaver", subj: "English", rarity: "Common", img: books, gradient: "sky", unlocked: false },
+  { id: "1", name: "Molecular Architect", subj: "Biology", rarity: "Legendary", icon: Fingerprint, color: "#30C5A0", unlocked: true, lore: "Awarded for 90%+ in Genetics. 1 in 240 students hold this card." },
+  { id: "2", name: "Golden Scholar", subj: "Weekly MVP", rarity: "Mythic", icon: Award, color: "#FFB63B", unlocked: true, lore: "Reset every Sunday. Top 1% across all schools." },
+  { id: "3", name: "Atom Whisperer", subj: "Physics", rarity: "Rare", icon: Orbit, color: "#FA675E", unlocked: true, lore: "Mechanics chain of 10 perfect duels." },
+  { id: "4", name: "Mind Master", subj: "Psychology", rarity: "Epic", icon: Hexagon, color: "#4C3297", unlocked: true, lore: "30-day streak holder." },
+  { id: "5", name: "Number Crusher", subj: "Maths", rarity: "Rare", icon: Cpu, color: "#90CAF9", unlocked: false },
+  { id: "6", name: "Word Weaver", subj: "English", rarity: "Common", icon: BookOpen, color: "#CE93D8", unlocked: false },
 ];
 
 const tiers = ["All", "Legendary", "Mythic", "Epic", "Rare", "Common"];
@@ -33,53 +27,75 @@ export default function VaultScreen() {
   return (
     <AppShell>
       <PageTransition>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
-          <MotiView
-            from={{ opacity: 0, translateY: -8 }} animate={{ opacity: 1, translateY: 0 }}
-            className="px-6 pt-12 pb-6"
-          >
-            <Text className="text-sm font-medium text-muted-foreground">Mastery vault</Text>
-            <Text className="mt-1 text-[2rem] font-semibold leading-none tracking-tight text-ink" style={{ fontSize: 32 }}>
-              4 of 12 collected
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+          
+          <View className="px-6 pt-16 pb-8">
+            <Text className="text-[2.5rem] font-black tracking-tight text-white leading-none">Vault</Text>
+            <Text className="mt-2 text-[13px] font-bold text-muted-foreground uppercase tracking-widest">
+              4 of 12 Relics Collected
             </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingTop: 16 }}>
+            
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingTop: 24 }}>
               {tiers.map((t) => (
                 <Pressable key={t} onPress={() => setFilter(t)}>
-                  {filter === t ? (
-                    <View className="rounded-full bg-ink px-4 py-1.5 border border-black/5">
-                      <Text className="text-xs font-semibold text-white">{t}</Text>
-                    </View>
-                  ) : (
-                    <View className="rounded-full bg-white px-4 py-1.5 border border-black/5">
-                      <Text className="text-xs font-semibold text-ink">{t}</Text>
-                    </View>
-                  )}
+                  <View className={`rounded-full px-5 py-2.5 border ${filter === t ? "bg-white border-white" : "bg-[#1C1C24] border-white/5"}`}>
+                    <Text className={`text-[12px] font-black tracking-widest uppercase ${filter === t ? "text-[#121214]" : "text-white"}`}>{t}</Text>
+                  </View>
                 </Pressable>
               ))}
             </ScrollView>
-          </MotiView>
+          </View>
 
-          <View className="flex-row flex-wrap px-6 pb-12" style={{ gap: 16 }}>
+          <View className="flex-row flex-wrap px-6 justify-between" style={{ gap: 16 }}>
             {cards.map((c, i) => (
               <MotiView
-                key={c.name}
-                from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }}
-                transition={{ delay: i * 70, duration: 500 }}
+                key={c.id}
+                from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 50, type: "spring", damping: 20 }}
                 style={{ width: "47%" }}
               >
-                <Pressable
-                  onPress={() => { if (c.unlocked) popBurst(0.5, 0.5); setOpen(c); }}
-                >
-                  <View style={{ aspectRatio: 3 / 4, opacity: c.unlocked ? 1 : 0.6 }}>
-                    {c.unlocked ? (
-                      <Gradient name={c.gradient} className="flex-1 rounded-[28px] p-4 border border-black/5" style={shadowSoft}>
-                        <CardInner card={c} index={i} />
-                      </Gradient>
-                    ) : (
-                      <View className="flex-1 rounded-[28px] bg-canvas p-4 border border-black/5" style={shadowSoft}>
-                        <CardInner card={c} index={i} />
-                      </View>
+                <Pressable onPress={() => { if (c.unlocked) { popBurst(0.5, 0.5); setOpen(c); } }}>
+                  <View 
+                    className="rounded-[32px] overflow-hidden p-5 border relative"
+                    style={{ 
+                      aspectRatio: 3 / 4, 
+                      backgroundColor: c.unlocked ? c.color + "1A" : "#1C1C24",
+                      borderColor: c.unlocked ? c.color + "40" : "rgba(255,255,255,0.05)",
+                      opacity: c.unlocked ? 1 : 0.6
+                    }}
+                  >
+                    {c.unlocked && (
+                      <View className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
                     )}
+                    
+                    <View className="flex-row items-center justify-between z-10">
+                      <View className="rounded-full bg-white/10 px-2 py-1 backdrop-blur-md border border-white/10">
+                        <Text className="text-[8px] font-black uppercase tracking-widest text-white">{c.rarity}</Text>
+                      </View>
+                    </View>
+
+                    <View className="flex-1 items-center justify-center z-10">
+                      {c.unlocked ? (
+                        <MotiView
+                          from={{ translateY: 0 }}
+                          animate={{ translateY: -10 }}
+                          transition={{ loop: true, type: "timing", duration: 3000 + i * 200, direction: "alternate" }}
+                          className="size-20 rounded-[24px] items-center justify-center border-2 border-white/20"
+                          style={{ backgroundColor: c.color, shadowColor: c.color, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20 }}
+                        >
+                          <c.icon size={36} color="#FFFFFF" strokeWidth={2} />
+                        </MotiView>
+                      ) : (
+                        <View className="size-20 rounded-[24px] bg-[#2A2A35] border-2 border-white/5 items-center justify-center">
+                          <Text className="text-3xl font-black text-white/20">?</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View className="z-10 mt-2">
+                      <Text className="text-[13px] font-black leading-tight text-white" numberOfLines={2}>{c.name}</Text>
+                      <Text className="text-[10px] font-bold mt-1 text-white/50 uppercase tracking-widest">{c.subj}</Text>
+                    </View>
                   </View>
                 </Pressable>
               </MotiView>
@@ -87,111 +103,50 @@ export default function VaultScreen() {
           </View>
         </ScrollView>
 
-        {/* Modal */}
         <Modal visible={!!open} transparent animationType="fade" onRequestClose={() => setOpen(null)}>
-          <Pressable onPress={() => setOpen(null)} className="flex-1 items-center justify-center bg-ink/60 p-6">
+          <Pressable onPress={() => setOpen(null)} className="flex-1 items-center justify-center bg-[#121214]/90 p-6 backdrop-blur-xl">
             <MotiView
               from={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 280, damping: 24 }}
               style={{ width: "100%", maxWidth: 320 }}
             >
               {open && (
-                <View>
-                  {open.unlocked ? (
-                    <Gradient name={open.gradient} className="relative rounded-[36px] p-6" style={shadowPop}>
-                      <ModalCardInner card={open} onClose={() => setOpen(null)} />
-                    </Gradient>
-                  ) : (
-                    <View className="relative rounded-[36px] bg-canvas p-6" style={shadowPop}>
-                      <ModalCardInner card={open} onClose={() => setOpen(null)} />
+                <View 
+                  className="rounded-[40px] p-8 border relative overflow-hidden items-center"
+                  style={{ backgroundColor: open.color + "20", borderColor: open.color }}
+                >
+                  <View className="absolute inset-0 bg-black/40" />
+                  
+                  <Pressable onPress={() => setOpen(null)} className="absolute right-5 top-5 z-20 size-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-md">
+                    <X size={20} color="#FFFFFF" />
+                  </Pressable>
+
+                  <MotiView
+                    from={{ rotate: "0deg", translateY: 0 }}
+                    animate={{ rotate: "360deg", translateY: -10 }}
+                    transition={{ loop: true, type: "timing", duration: 12000 }}
+                    className="size-32 rounded-[40px] items-center justify-center border-4 border-white/20 z-10 shadow-2xl mt-8"
+                    style={{ backgroundColor: open.color }}
+                  >
+                    <open.icon size={64} color="#FFFFFF" strokeWidth={1.5} />
+                  </MotiView>
+
+                  <View className="z-10 items-center mt-12 w-full">
+                    <View className="rounded-full bg-white/10 px-3 py-1.5 border border-white/20 mb-4">
+                      <Text className="text-[10px] font-black uppercase tracking-widest text-white">{open.rarity} Relic</Text>
                     </View>
-                  )}
+                    <Text className="text-3xl font-black text-white text-center leading-none">{open.name}</Text>
+                    <Text className="text-[13px] font-bold text-white/50 text-center mt-4 leading-relaxed px-4">
+                      {open.lore}
+                    </Text>
+                  </View>
                 </View>
               )}
             </MotiView>
           </Pressable>
         </Modal>
+
       </PageTransition>
     </AppShell>
   );
 }
-
-function CardInner({ card, index }) {
-  return (
-    <View className="flex-1">
-      <View className="flex-row items-start justify-between">
-        <View className="rounded-full bg-white/30 px-2 py-0.5">
-          <Text className={`text-[9px] font-bold uppercase tracking-wider ${card.dark ? "text-ink" : "text-white"}`}>
-            {card.rarity}
-          </Text>
-        </View>
-        <Text className={`text-[9px] ${card.dark ? "text-ink/60" : "text-white/60"}`} style={{ fontFamily: "monospace" }}>
-          #{String(index + 1).padStart(4, "0")}
-        </Text>
-      </View>
-      <View className="flex-1 items-center justify-center">
-        {card.unlocked ? (
-          <MotiImage
-            source={card.img}
-            from={{ translateY: 0, rotate: "-3deg" }}
-            animate={{ translateY: -6, rotate: "3deg" }}
-            transition={{ loop: true, type: "timing", duration: 4000 + index * 300 }}
-            style={{ width: 96, height: 96 }}
-            resizeMode="contain"
-          />
-        ) : (
-          <Text className="text-5xl text-ink/20">?</Text>
-        )}
-      </View>
-      <View>
-        <Text className={`text-sm font-semibold leading-tight ${card.dark ? "text-ink" : "text-white"}`}>
-          {card.name}
-        </Text>
-        <Text className={`text-[10px] mt-0.5 ${card.dark ? "text-ink/60" : "text-white/70"}`}>
-          {card.subj}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function ModalCardInner({ card, onClose }) {
-  return (
-    <>
-      <Pressable
-        onPress={onClose}
-        className="absolute right-4 top-4 z-10 size-9 items-center justify-center rounded-full bg-white/30"
-      >
-        <X size={16} color={card.dark ? "#1B1A2E" : "#fff"} />
-      </Pressable>
-      <View className="items-center py-6">
-        {card.unlocked ? (
-          <MotiImage
-            source={card.img}
-            from={{ rotate: "0deg", translateY: 0 }}
-            animate={{ rotate: "360deg", translateY: -8 }}
-            transition={{ loop: true, type: "timing", duration: 10000 }}
-            style={{ width: 144, height: 144 }}
-            resizeMode="contain"
-          />
-        ) : (
-          <Text className="text-7xl text-ink/30">?</Text>
-        )}
-      </View>
-      <View className="self-start rounded-full bg-white/30 px-2 py-0.5">
-        <Text className={`text-[10px] font-bold uppercase tracking-wider ${card.dark ? "text-ink" : "text-white"}`}>
-          {card.rarity}
-        </Text>
-      </View>
-      <Text className={`mt-2 text-xl font-semibold ${card.dark ? "text-ink" : "text-white"}`}>{card.name}</Text>
-      <Text className={`mt-1 text-xs ${card.dark ? "text-ink/70" : "text-white/80"}`}>
-        {card.unlocked
-          ? card.lore || `Earned through mastery of ${card.subj}.`
-          : `Locked. Hit 80% mastery in ${card.subj} to unlock.`}
-      </Text>
-    </>
-  );
-}
-
-const shadowSoft = { shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 3 };
-const shadowPop = { shadowColor: "#000", shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.18, shadowRadius: 30, elevation: 10 };
