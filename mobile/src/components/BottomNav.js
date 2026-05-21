@@ -1,18 +1,16 @@
-// 1:1 port of src/components/BottomNav.tsx
 import React from "react";
 import { View, Text } from "react-native";
 import { MotiView } from "moti";
 import { MotiPressable } from "./primitives/MotiPressable";
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { Home, Swords, Sparkles, Layers, User } from "lucide-react-native";
-import { COLORS } from "../lib/utils";
 
 const items = [
-  { to: "Home",    label: "Home",    icon: Home,     color: COLORS.peach },
-  { to: "Duel",    label: "Duel",    icon: Swords,   color: COLORS.coral },
-  { to: "Predict", label: "Predict", icon: Sparkles, color: COLORS.royal },
-  { to: "Vault",   label: "Vault",   icon: Layers,   color: COLORS.teal },
-  { to: "Profile", label: "Me",      icon: User,     color: COLORS.sand },
+  { to: "Home",    label: "Home",    icon: Home },
+  { to: "Duel",    label: "Duel",    icon: Swords },
+  { to: "Predict", label: "Predict", icon: Sparkles },
+  { to: "Vault",   label: "Vault",   icon: Layers },
+  { to: "Profile", label: "Me",      icon: User },
 ];
 
 export default function BottomNav() {
@@ -26,51 +24,39 @@ export default function BottomNav() {
   return (
     <View
       pointerEvents="box-none"
-      className="absolute bottom-6 left-0 right-0 z-50 flex-row justify-center px-4"
+      className="absolute bottom-6 left-0 right-0 z-50 flex-row justify-center px-6"
     >
       <View
-        className="flex-row items-center gap-1 rounded-full border border-black/5 bg-white/95 p-2"
+        className="flex-row items-center justify-between w-full rounded-[32px] bg-card/95 border border-white/5 px-6 py-4"
         style={{
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 20 },
-          shadowOpacity: 0.18,
+          shadowOpacity: 0.4,
           shadowRadius: 30,
-          elevation: 10,
+          elevation: 20,
         }}
       >
-        {items.map(({ to, label, icon: Icon, color }) => {
+        {items.map(({ to, icon: Icon }) => {
           const active = routeName === to;
           return (
             <MotiPressable
               key={to}
               onPress={() => navigation.navigate(to)}
-              className="relative"
+              className="items-center justify-center"
               sound="swipe"
             >
               <MotiView
-                from={{ scale: 1 }}
-                animate={{ scale: 1 }}
-                className="relative flex-row items-center gap-2 rounded-full px-3 py-2"
-                style={{
-                  backgroundColor: active
-                    ? color + "30" // ~18% opacity
-                    : "transparent",
-                }}
+                animate={{ scale: active ? 1.1 : 1, opacity: active ? 1 : 0.4 }}
+                transition={{ type: "spring", damping: 15 }}
+                className="relative items-center justify-center"
               >
-                <View className="relative size-9 items-center justify-center">
-                  <Icon
-                    size={20}
-                    color={active ? color : COLORS.mutedForeground}
-                    strokeWidth={2.4}
-                  />
-                </View>
+                <Icon size={24} color="#FFFFFF" strokeWidth={active ? 2.5 : 2} />
                 {active && (
-                  <Text
-                    className="text-sm font-semibold pr-2"
-                    style={{ color }}
-                  >
-                    {label}
-                  </Text>
+                  <MotiView 
+                    from={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -bottom-2.5 size-1 rounded-full bg-white"
+                  />
                 )}
               </MotiView>
             </MotiPressable>

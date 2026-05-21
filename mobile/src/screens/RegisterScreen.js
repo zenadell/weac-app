@@ -1,25 +1,18 @@
-// Quick onboarding registration — same design language as Lovable (light theme, gradient pop)
 import React, { useState } from "react";
 import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform } from "react-native";
 import { MotiView } from "moti";
 import { useNavigation } from "@react-navigation/native";
-import { ArrowLeft, ArrowRight } from "lucide-react-native";
+import { ArrowLeft, Sparkles } from "lucide-react-native";
 import AppShell from "../components/AppShell";
 import PageTransition from "../components/PageTransition";
-import Gradient from "../components/Gradient";
 import { useGame } from "../lib/game-store";
 
 const STEPS = ["Who are you?", "Your school", "Your exam", "Your subjects", "Exam year"];
-
-const EXAMS = ["WAEC", "JAMB", "NECO", "A-Levels", "SAT", "GCSE", "Other"];
-
-const COUNTRIES = ["Nigeria", "Ghana", "Kenya", "South Africa", "Uganda", "Tanzania", "United Kingdom", "United States", "Canada", "India", "Other"];
-
+const EXAMS = ["WAEC", "JAMB", "NECO", "A-Levels", "SAT", "GCSE"];
+const COUNTRIES = ["Nigeria", "Ghana", "Kenya", "South Africa", "United Kingdom", "Other"];
 const ALL_SUBJECTS = [
-  "English Language", "Mathematics", "Biology", "Chemistry", "Physics",
-  "Economics", "Government", "Literature", "Geography", "Commerce",
-  "Accounting", "History", "Agriculture", "Computer Science",
-  "French", "Yoruba", "Igbo", "Hausa", "Further Mathematics",
+  "English", "Mathematics", "Biology", "Chemistry", "Physics",
+  "Economics", "Government", "Literature", "Geography",
 ];
 
 export default function RegisterScreen() {
@@ -63,132 +56,110 @@ export default function RegisterScreen() {
     <AppShell hideNav>
       <PageTransition>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-          <View className="flex-row items-center justify-between px-6 pt-12 pb-4">
+          <View className="flex-row items-center justify-between px-6 pt-16 pb-4">
             <Pressable
               onPress={back}
               disabled={step === 0}
-              className="size-10 items-center justify-center rounded-2xl bg-white border border-black/5"
-              style={[shadowSoft, { opacity: step === 0 ? 0.4 : 1 }]}
+              className="size-12 items-center justify-center rounded-full bg-[#1C1C24] border border-white/5"
+              style={{ opacity: step === 0 ? 0.4 : 1 }}
             >
-              <ArrowLeft size={16} color="#1B1A2E" />
+              <ArrowLeft size={20} color="#FFFFFF" />
             </Pressable>
-            <Text className="text-sm font-semibold text-muted-foreground">{step + 1} of {STEPS.length}</Text>
-            <View className="size-10" />
+            <View className="flex-row gap-2">
+              {STEPS.map((_, i) => (
+                <View key={i} className={`h-1.5 rounded-full ${i <= step ? "bg-primary w-6" : "bg-white/10 w-2"}`} />
+              ))}
+            </View>
+            <View className="size-12" />
           </View>
 
-          {/* Progress bar */}
-          <View className="mx-6 h-1.5 overflow-hidden rounded-full bg-canvas">
+          <ScrollView className="flex-1" contentContainerStyle={{ padding: 24, paddingBottom: 100 }} keyboardShouldPersistTaps="handled">
             <MotiView
-              from={{ width: "0%" }} animate={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
-              transition={{ duration: 400 }}
-              className="h-full rounded-full"
+              key={step}
+              from={{ opacity: 0, translateX: 20 }}
+              animate={{ opacity: 1, translateX: 0 }}
+              transition={{ type: "spring", damping: 20 }}
             >
-              <Gradient name="peach" className="h-full rounded-full" />
-            </MotiView>
-          </View>
+              <Text className="text-[3rem] font-black tracking-tighter text-white mb-8 leading-none">
+                {STEPS[step]}
+              </Text>
 
-          <ScrollView className="flex-1" contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
-            <Text className="text-[2rem] font-semibold tracking-tight text-ink mb-6" style={{ fontSize: 30 }}>
-              {STEPS[step]}
-            </Text>
+              {step === 0 && (
+                <View style={{ gap: 24 }}>
+                  <Field label="WHAT'S YOUR NAME?" placeholder="e.g. Ayo" value={form.name} onChangeText={(v) => setForm((f) => ({ ...f, name: v }))} autoFocus />
+                  <View>
+                    <Text className="text-[11px] font-black tracking-widest text-muted-foreground uppercase mb-3">Country</Text>
+                    <View className="flex-row flex-wrap gap-3">
+                      {COUNTRIES.map((c) => (
+                        <Pressable key={c} onPress={() => setForm((f) => ({ ...f, country: c }))}>
+                          <View className={`rounded-full px-5 py-3 border ${form.country === c ? "bg-primary border-primary" : "bg-[#1C1C24] border-white/5"}`}>
+                            <Text className={`text-[13px] font-bold ${form.country === c ? "text-[#121214]" : "text-white"}`}>{c}</Text>
+                          </View>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              )}
 
-            {step === 0 && (
-              <View style={{ gap: 16 }}>
-                <Field label="Your name" placeholder="e.g. Ayo Okonkwo" value={form.name} onChangeText={(v) => setForm((f) => ({ ...f, name: v }))} autoFocus />
-                <Text className="text-sm font-semibold text-ink mt-2">Country</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                  {COUNTRIES.map((c) => (
-                    <Pressable key={c} onPress={() => setForm((f) => ({ ...f, country: c }))}>
-                      {form.country === c ? (
-                        <Gradient name="lilac" className="rounded-full px-4 py-2">
-                          <Text className="text-xs font-semibold text-white">{c}</Text>
-                        </Gradient>
-                      ) : (
-                        <View className="rounded-full bg-white px-4 py-2 border border-black/5" style={shadowSoft}>
-                          <Text className="text-xs font-semibold text-ink">{c}</Text>
-                        </View>
-                      )}
+              {step === 1 && (
+                <View style={{ gap: 24 }}>
+                  <Field label="SCHOOL NAME" placeholder="e.g. Lagos Science Academy" value={form.school} onChangeText={(v) => setForm((f) => ({ ...f, school: v }))} autoFocus />
+                  <Field label="CLASS / GRADE" placeholder="e.g. SS3 / Year 12" value={form.grade} onChangeText={(v) => setForm((f) => ({ ...f, grade: v }))} />
+                </View>
+              )}
+
+              {step === 2 && (
+                <View className="flex-row flex-wrap gap-4">
+                  {EXAMS.map((e) => (
+                    <Pressable key={e} onPress={() => setForm((f) => ({ ...f, examType: e }))} style={{ width: "47%" }}>
+                      <View className={`rounded-[32px] p-6 items-center justify-center border ${form.examType === e ? "bg-purple border-purple" : "bg-[#1C1C24] border-white/5"}`} style={{ height: 120 }}>
+                        <Text className="text-xl font-black text-white">{e}</Text>
+                      </View>
                     </Pressable>
                   ))}
-                </ScrollView>
-              </View>
-            )}
-
-            {step === 1 && (
-              <View style={{ gap: 16 }}>
-                <Field label="School name" placeholder="e.g. Lagos Science Academy" value={form.school} onChangeText={(v) => setForm((f) => ({ ...f, school: v }))} autoFocus />
-                <Field label="Class / Grade" placeholder="e.g. SS3 / Year 12" value={form.grade} onChangeText={(v) => setForm((f) => ({ ...f, grade: v }))} />
-              </View>
-            )}
-
-            {step === 2 && (
-              <View className="flex-row flex-wrap" style={{ gap: 10 }}>
-                {EXAMS.map((e) => (
-                  <Pressable key={e} onPress={() => setForm((f) => ({ ...f, examType: e }))} style={{ width: "47%" }}>
-                    {form.examType === e ? (
-                      <Gradient name="peach" className="rounded-2xl p-4 items-center justify-center" style={[shadowSoft, { minHeight: 64 }]}>
-                        <Text className="text-base font-bold text-white">{e}</Text>
-                      </Gradient>
-                    ) : (
-                      <View className="rounded-2xl bg-white p-4 items-center justify-center border border-black/5" style={[shadowSoft, { minHeight: 64 }]}>
-                        <Text className="text-base font-bold text-ink">{e}</Text>
-                      </View>
-                    )}
-                  </Pressable>
-                ))}
-              </View>
-            )}
-
-            {step === 3 && (
-              <View>
-                <Text className="text-sm font-semibold text-ink mb-1">Pick up to 9 subjects</Text>
-                <Text className="text-xs text-muted-foreground mb-3">{form.subjects.length} selected</Text>
-                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-                  {ALL_SUBJECTS.map((s) => {
-                    const sel = form.subjects.includes(s);
-                    return (
-                      <Pressable key={s} onPress={() => toggleSubject(s)}>
-                        {sel ? (
-                          <Gradient name="mint" className="rounded-full px-4 py-2">
-                            <Text className="text-xs font-semibold text-white">{s}</Text>
-                          </Gradient>
-                        ) : (
-                          <View className="rounded-full bg-white px-4 py-2 border border-black/5" style={shadowSoft}>
-                            <Text className="text-xs font-semibold text-ink">{s}</Text>
-                          </View>
-                        )}
-                      </Pressable>
-                    );
-                  })}
                 </View>
-              </View>
-            )}
+              )}
 
-            {step === 4 && (
-              <View className="flex-row flex-wrap" style={{ gap: 10 }}>
-                {years.map((y) => (
-                  <Pressable key={y} onPress={() => setForm((f) => ({ ...f, examYear: y }))} style={{ width: "31%" }}>
-                    {form.examYear === y ? (
-                      <Gradient name="peach" className="rounded-2xl p-5 items-center" style={shadowSoft}>
-                        <Text className="text-lg font-bold text-white">{y}</Text>
-                      </Gradient>
-                    ) : (
-                      <View className="rounded-2xl bg-white p-5 items-center border border-black/5" style={shadowSoft}>
-                        <Text className="text-lg font-bold text-ink">{y}</Text>
+              {step === 3 && (
+                <View>
+                  <Text className="text-[13px] font-medium text-muted-foreground mb-6">{form.subjects.length}/9 selected</Text>
+                  <View className="flex-row flex-wrap gap-3">
+                    {ALL_SUBJECTS.map((s) => {
+                      const sel = form.subjects.includes(s);
+                      return (
+                        <Pressable key={s} onPress={() => toggleSubject(s)}>
+                          <View className={`rounded-full px-5 py-3 border ${sel ? "bg-green border-green" : "bg-[#1C1C24] border-white/5"}`}>
+                            <Text className={`text-[14px] font-bold ${sel ? "text-[#121214]" : "text-white"}`}>{s}</Text>
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+
+              {step === 4 && (
+                <View className="flex-row flex-wrap gap-4">
+                  {years.map((y) => (
+                    <Pressable key={y} onPress={() => setForm((f) => ({ ...f, examYear: y }))} style={{ width: "47%" }}>
+                      <View className={`rounded-[32px] p-6 items-center justify-center border ${form.examYear === y ? "bg-yellow border-yellow" : "bg-[#1C1C24] border-white/5"}`} style={{ height: 100 }}>
+                        <Text className={`text-2xl font-black ${form.examYear === y ? "text-[#121214]" : "text-white"}`}>{y}</Text>
                       </View>
-                    )}
-                  </Pressable>
-                ))}
-              </View>
-            )}
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </MotiView>
           </ScrollView>
 
-          <View className="px-6 pb-10">
-            <Pressable onPress={next} disabled={!canNext()} style={{ opacity: canNext() ? 1 : 0.5 }}>
-              <View className="h-14 items-center justify-center rounded-full bg-[#FFB6C1]" style={shadowPop}>
-                <Text className="text-base font-semibold text-white">
-                  {step === STEPS.length - 1 ? "Let's go!" : "Continue"}
+          <View className="absolute bottom-10 left-6 right-6">
+            <Pressable onPress={next} disabled={!canNext()} style={{ opacity: canNext() ? 1 : 0.4 }}>
+              <View className="h-16 flex-row items-center justify-center gap-2 rounded-full bg-white shadow-xl">
+                <Text className="text-lg font-black text-[#121214]">
+                  {step === STEPS.length - 1 ? "Start Learning" : "Continue"}
                 </Text>
+                {step === STEPS.length - 1 && <Sparkles size={20} color="#121214" fill="#121214" />}
               </View>
             </Pressable>
           </View>
@@ -201,20 +172,16 @@ export default function RegisterScreen() {
 function Field({ label, placeholder, value, onChangeText, autoFocus }) {
   return (
     <View>
-      <Text className="text-sm font-semibold text-ink mb-2">{label}</Text>
+      <Text className="text-[11px] font-black tracking-widest text-muted-foreground uppercase mb-3">{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#7B7995"
+        placeholderTextColor="#4A4A5A"
         autoFocus={autoFocus}
         autoCapitalize="words"
-        className="rounded-full bg-white px-5 py-4 text-base text-ink border-2 border-[#1E90FF]"
-        style={shadowSoft}
+        className="rounded-[24px] bg-[#1C1C24] px-6 py-5 text-xl font-bold text-white border-2 border-transparent focus:border-primary"
       />
     </View>
   );
 }
-
-const shadowSoft = { shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 3 };
-const shadowPop = { shadowColor: "#000", shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.18, shadowRadius: 30, elevation: 10 };

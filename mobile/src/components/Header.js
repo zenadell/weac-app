@@ -1,17 +1,14 @@
-// 1:1 port of src/components/Header.tsx
 import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { MotiView } from "moti";
 import { useNavigation } from "@react-navigation/native";
-import { Bell, Coins, Gem } from "lucide-react-native";
-import Gradient from "./Gradient";
+import { Bell, Coins, Gem, Search } from "lucide-react-native";
 import { useGame } from "../lib/game-store";
-import { COLORS } from "../lib/utils";
 
-export default function Header({ name, greeting = "Good morning" }) {
+export default function Header({ name, greeting = "Welcome back" }) {
   const navigation = useNavigation();
   const { level, xp, xpToNext, coins, gems, profile } = useGame();
-  const displayName = name || profile?.name || "Ayo Bakare";
+  const displayName = name || profile?.name || "Ayo";
   const pct = Math.min(100, (xp / xpToNext) * 100);
 
   return (
@@ -19,76 +16,61 @@ export default function Header({ name, greeting = "Good morning" }) {
       from={{ opacity: 0, translateY: -8 }}
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ duration: 500 }}
-      className="px-6 pt-12 pb-6"
+      className="px-6 pt-14 pb-4"
     >
-      <View className="flex-row items-end justify-between">
-        <View>
-          <Text className="text-sm font-medium text-muted-foreground">{greeting},</Text>
-          <Text className="text-[2rem] font-semibold leading-none tracking-tight text-ink mt-1" numberOfLines={1}>
-            {displayName}
-          </Text>
+      {/* Sleek Minimalist Top Bar from Image 3 */}
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center gap-3">
+          <View className="size-11 rounded-full bg-[#1C1C24] items-center justify-center border border-white/5">
+            <Text className="text-white font-black text-lg">{displayName.charAt(0)}</Text>
+          </View>
+          <View>
+            <Text className="text-[12px] font-semibold text-muted-foreground uppercase tracking-widest">{greeting}</Text>
+            <Text className="text-[22px] font-black leading-none text-white mt-1" numberOfLines={1}>
+              {displayName}
+            </Text>
+          </View>
         </View>
-        <View className="flex-row items-center gap-2">
-          <Pressable
-            onPress={() => navigation.navigate("Shop")}
-            className="flex-row items-center gap-1.5 rounded-full bg-white px-2.5 py-1.5 border border-black/5"
-            style={shadowSoft}
-          >
-            <Coins size={14} color={COLORS.sand} strokeWidth={2.6} />
-            <Text className="text-xs font-bold tabular-nums">{coins.toLocaleString()}</Text>
+
+        <View className="flex-row items-center gap-4">
+          <Pressable onPress={() => navigation.navigate("Shop")} className="opacity-70">
+            <Search size={22} color="#FFFFFF" strokeWidth={2.5} />
           </Pressable>
-          <Pressable
-            onPress={() => navigation.navigate("Shop")}
-            className="flex-row items-center gap-1.5 rounded-full bg-white px-2.5 py-1.5 border border-black/5"
-            style={shadowSoft}
-          >
-            <Gem size={14} color={COLORS.royal} strokeWidth={2.6} />
-            <Text className="text-xs font-bold tabular-nums">{gems}</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => navigation.navigate("Notifications")}
-            className="relative size-10 items-center justify-center rounded-full bg-white border border-black/5"
-            style={shadowSoft}
-          >
-            <Bell size={16} color={COLORS.ink} strokeWidth={2.2} />
-            <View className="absolute right-2 top-2 size-2 rounded-full bg-coral border-2 border-white" />
+          <Pressable onPress={() => navigation.navigate("Notifications")} className="opacity-70 relative">
+            <Bell size={22} color="#FFFFFF" strokeWidth={2.5} />
+            <View className="absolute right-0 top-0 size-2.5 rounded-full bg-primary border-2 border-[#121214]" />
           </Pressable>
         </View>
       </View>
 
-      <Pressable
-        onPress={() => navigation.navigate("Season")}
-        className="mt-5"
-      >
-        <View
-          className="flex-row items-center gap-3 rounded-2xl bg-white p-3 border border-black/5"
-          style={shadowSoft}
-        >
-          <Gradient name="lilac" className="size-11 rounded-full items-center justify-center">
-            <Text className="text-sm font-bold tabular-nums text-white">{level}</Text>
-            <MotiView
-              from={{ scale: 1 }}
-              animate={{ scale: 1.4 }}
-              transition={{ loop: true, type: "timing", duration: 1600 }}
-              className="absolute -right-1 -top-1 size-2.5 rounded-full bg-butter border-2 border-white"
-            />
-          </Gradient>
-          <View className="flex-1">
-            <View className="flex-row items-baseline justify-between">
-              <Text className="text-xs font-semibold text-ink">Level {level}</Text>
-              <Text className="text-[10px] tabular-nums text-muted-foreground">
-                {xp}/{xpToNext} XP
-              </Text>
+      {/* Modern Compact Level Bar */}
+      <Pressable onPress={() => navigation.navigate("Season")} className="mt-6">
+        <View className="flex-row items-center justify-between rounded-[24px] bg-[#1C1C24] p-4 border border-white/5">
+          <View className="flex-row items-center gap-3">
+            <View className="size-10 rounded-xl bg-purple items-center justify-center">
+              <Text className="text-sm font-black text-white">{level}</Text>
             </View>
-            <View className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-canvas">
-              <MotiView
-                from={{ width: "0%" }}
-                animate={{ width: `${pct}%` }}
-                transition={{ duration: 900 }}
-                className="h-full rounded-full"
-              >
-                <Gradient name="peach" className="h-full rounded-full" />
-              </MotiView>
+            <View>
+              <Text className="text-[13px] font-bold text-white mb-1">Level {level}</Text>
+              <View className="h-1.5 w-32 overflow-hidden rounded-full bg-[#121214]">
+                <MotiView
+                  from={{ width: "0%" }}
+                  animate={{ width: `${pct}%` }}
+                  transition={{ duration: 900 }}
+                  className="h-full rounded-full bg-primary"
+                />
+              </View>
+            </View>
+          </View>
+          
+          <View className="flex-row items-center gap-3">
+            <View className="flex-row items-center gap-1.5">
+              <Coins size={14} color="#FFB63B" strokeWidth={2.6} />
+              <Text className="text-[13px] font-bold text-white">{coins}</Text>
+            </View>
+            <View className="flex-row items-center gap-1.5">
+              <Gem size={14} color="#30C5A0" strokeWidth={2.6} />
+              <Text className="text-[13px] font-bold text-white">{gems}</Text>
             </View>
           </View>
         </View>
@@ -96,11 +78,3 @@ export default function Header({ name, greeting = "Good morning" }) {
     </MotiView>
   );
 }
-
-const shadowSoft = {
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 10 },
-  shadowOpacity: 0.06,
-  shadowRadius: 16,
-  elevation: 3,
-};

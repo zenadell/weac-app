@@ -35,7 +35,7 @@ export default function GameHub() {
         >
           <MotiPressable onPress={() => navigation.navigate(to)}>
             <View
-              className="flex-row items-center justify-between rounded-[24px] bg-[#1E1E22] p-6"
+              className="flex-row items-center justify-between rounded-[32px] bg-[#1C1C24] p-6 border border-white/5"
             >
               <View>
                 <Text className="text-[17px] font-bold tracking-tight text-white mb-1">

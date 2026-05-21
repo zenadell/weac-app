@@ -5,53 +5,37 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Lovable design tokens (oklch → hex approximations from CSS comments)
-        canvas: "#FBF8F0",
-        ink: "#1B1A2E",
-        background: "#FBF8F0",
-        foreground: "#1B1A2E",
-        card: "#FFFFFF",
-        "card-foreground": "#1B1A2E",
-        popover: "#FFFFFF",
-        "popover-foreground": "#1B1A2E",
-        primary: "#FF9E80",
-        "primary-foreground": "#FFFFFF",
-        secondary: "#F4EFE5",
-        "secondary-foreground": "#1B1A2E",
-        muted: "#F4EFE5",
-        "muted-foreground": "#7B7995",
-        accent: "#F4EFE5",
-        "accent-foreground": "#1B1A2E",
-        destructive: "#E64547",
-        "destructive-foreground": "#FFFFFF",
-        border: "#E7E3D6",
-        input: "#E7E3D6",
-        ring: "#FF9E80",
-        // Pastel palette
+        // Ultra-Premium Dark Theme Tokens
+        canvas: "#121214", // Deep rich dark background
+        ink: "#FFFFFF",    // Pure white text
+        card: "#1C1C24",   // Slightly lighter card background
+        foreground: "#FFFFFF",
+        muted: "#2C2C35",
+        "muted-foreground": "#8E8E9F",
+        border: "#2C2C35",
+        
+        // Highly Saturated Accent Colors (from Image 3)
+        primary: "#FA675E", // Vibrant Red/Coral
+        purple: "#4C3297",
+        green: "#30C5A0",
+        yellow: "#FFB63B",
         peach: "#FF9E80",
-        coral: "#F06292",
         lilac: "#CE93D8",
-        royal: "#9575CD",
-        mint: "#80CBC4",
-        teal: "#4DB6AC",
         butter: "#FFF176",
-        sand: "#FFD54F",
         sky: "#90CAF9",
-        ocean: "#5C6BC0",
-        blush: "#F8BBD0",
         rose: "#EF5350",
       },
       fontFamily: {
         sans: ["Outfit_400Regular", "System"],
       },
       borderRadius: {
-        sm: "calc(1.5rem - 4px)",
-        md: "calc(1.5rem - 2px)",
-        lg: "1.5rem",
-        xl: "calc(1.5rem + 4px)",
-        "2xl": "calc(1.5rem + 8px)",
-        "3xl": "calc(1.5rem + 12px)",
-        "4xl": "calc(1.5rem + 16px)",
+        sm: "8px",
+        md: "12px",
+        lg: "16px",
+        xl: "20px",
+        "2xl": "24px",
+        "3xl": "32px",
+        "4xl": "40px",
       },
     },
   },
