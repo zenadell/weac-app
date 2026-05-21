@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, Modal, Dimensions } from "react-native";
-import { MotiView, AnimatePresence } from "moti";
+import { View, Text, Pressable, Modal, Dimensions } from "react-native";
+import { MotiView, MotiImage } from "moti";
 import { X, Hexagon, Orbit, Award, Cpu, BookOpen, Fingerprint } from "lucide-react-native";
+import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import AppShell from "../components/AppShell";
 import PageTransition from "../components/PageTransition";
 import { popBurst } from "../lib/confetti";
+import { RadialScrollGallery } from "../components/ui/radial-scroll-gallery";
 
 const { width } = Dimensions.get("window");
 
@@ -15,94 +17,99 @@ const allCards = [
   { id: "4", name: "Mind Master", subj: "Psychology", rarity: "Epic", icon: Hexagon, color: "#4C3297", unlocked: true, lore: "30-day streak holder." },
   { id: "5", name: "Number Crusher", subj: "Maths", rarity: "Rare", icon: Cpu, color: "#90CAF9", unlocked: false },
   { id: "6", name: "Word Weaver", subj: "English", rarity: "Common", icon: BookOpen, color: "#CE93D8", unlocked: false },
+  { id: "7", name: "History Buff", subj: "History", rarity: "Common", icon: BookOpen, color: "#CE93D8", unlocked: false },
+  { id: "8", name: "Geography Genius", subj: "Geography", rarity: "Epic", icon: Orbit, color: "#4C3297", unlocked: false },
 ];
 
-const tiers = ["All", "Legendary", "Mythic", "Epic", "Rare", "Common"];
-
 export default function VaultScreen() {
-  const [filter, setFilter] = useState("All");
   const [open, setOpen] = useState(null);
-  const cards = filter === "All" ? allCards : allCards.filter((c) => c.rarity === filter);
+  const scrollY = useSharedValue(0);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
 
   return (
     <AppShell>
       <PageTransition>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-          
-          <View className="px-6 pt-16 pb-8">
-            <Text className="text-[2.5rem] font-black tracking-tight text-white leading-none">Vault</Text>
-            <Text className="mt-2 text-[13px] font-bold text-muted-foreground uppercase tracking-widest">
-              4 of 12 Relics Collected
+        <Animated.ScrollView 
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={{ paddingBottom: 300, paddingTop: 64 }}
+        >
+          <View className="px-6 mb-8 items-center">
+            <Text className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+              The Vault
             </Text>
-            
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingTop: 24 }}>
-              {tiers.map((t) => (
-                <Pressable key={t} onPress={() => setFilter(t)}>
-                  <View className={`rounded-full px-5 py-2.5 border ${filter === t ? "bg-white border-white" : "bg-[#1C1C24] border-white/5"}`}>
-                    <Text className={`text-[12px] font-black tracking-widest uppercase ${filter === t ? "text-[#121214]" : "text-white"}`}>{t}</Text>
-                  </View>
-                </Pressable>
-              ))}
-            </ScrollView>
+            <Text className="text-[3rem] font-black tracking-tight text-white leading-none text-center">
+              Your Relics
+            </Text>
+            <Text className="mt-4 text-[13px] font-bold text-muted-foreground uppercase tracking-widest text-center">
+              ↓ Scroll to rotate
+            </Text>
           </View>
 
-          <View className="flex-row flex-wrap px-6 justify-between" style={{ gap: 16 }}>
-            {cards.map((c, i) => (
-              <MotiView
-                key={c.id}
-                from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 50, type: "spring", damping: 20 }}
-                style={{ width: "47%" }}
+          {/* Radial Scroll Gallery Component */}
+          <RadialScrollGallery 
+            scrollY={scrollY} 
+            radius={width * 0.9} 
+            itemSize={160} 
+            visiblePercentage={45}
+          >
+            {allCards.map((c, i) => (
+              <Pressable 
+                key={c.id} 
+                onPress={() => { if (c.unlocked) { popBurst(0.5, 0.5); setOpen(c); } }}
+                className="w-full h-full"
               >
-                <Pressable onPress={() => { if (c.unlocked) { popBurst(0.5, 0.5); setOpen(c); } }}>
-                  <View 
-                    className="rounded-[32px] overflow-hidden p-5 border relative"
-                    style={{ 
-                      aspectRatio: 3 / 4, 
-                      backgroundColor: c.unlocked ? c.color + "1A" : "#1C1C24",
-                      borderColor: c.unlocked ? c.color + "40" : "rgba(255,255,255,0.05)",
-                      opacity: c.unlocked ? 1 : 0.6
-                    }}
-                  >
-                    {c.unlocked && (
-                      <View className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
-                    )}
-                    
-                    <View className="flex-row items-center justify-between z-10">
-                      <View className="rounded-full bg-white/10 px-2 py-1 backdrop-blur-md border border-white/10">
-                        <Text className="text-[8px] font-black uppercase tracking-widest text-white">{c.rarity}</Text>
-                      </View>
+                <View 
+                  className="w-full h-full rounded-[24px] overflow-hidden p-4 border relative items-center justify-center"
+                  style={{ 
+                    backgroundColor: c.unlocked ? c.color + "1A" : "#1C1C24",
+                    borderColor: c.unlocked ? c.color + "40" : "rgba(255,255,255,0.05)",
+                    opacity: c.unlocked ? 1 : 0.6,
+                    transform: [{ scale: c.unlocked ? 1 : 0.9 }]
+                  }}
+                >
+                  {c.unlocked && (
+                    <View className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20" />
+                  )}
+                  
+                  {c.unlocked ? (
+                    <MotiView
+                      from={{ translateY: 0 }}
+                      animate={{ translateY: -5 }}
+                      transition={{ loop: true, type: "timing", duration: 2000 + i * 200, direction: "alternate" }}
+                      className="size-16 rounded-[16px] items-center justify-center border-2 border-white/20 mb-2"
+                      style={{ backgroundColor: c.color, shadowColor: c.color, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 15 }}
+                    >
+                      <c.icon size={28} color="#FFFFFF" strokeWidth={2} />
+                    </MotiView>
+                  ) : (
+                    <View className="size-16 rounded-[16px] bg-[#2A2A35] border-2 border-white/5 items-center justify-center mb-2">
+                      <Text className="text-2xl font-black text-white/20">?</Text>
                     </View>
+                  )}
 
-                    <View className="flex-1 items-center justify-center z-10">
-                      {c.unlocked ? (
-                        <MotiView
-                          from={{ translateY: 0 }}
-                          animate={{ translateY: -10 }}
-                          transition={{ loop: true, type: "timing", duration: 3000 + i * 200, direction: "alternate" }}
-                          className="size-20 rounded-[24px] items-center justify-center border-2 border-white/20"
-                          style={{ backgroundColor: c.color, shadowColor: c.color, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 20 }}
-                        >
-                          <c.icon size={36} color="#FFFFFF" strokeWidth={2} />
-                        </MotiView>
-                      ) : (
-                        <View className="size-20 rounded-[24px] bg-[#2A2A35] border-2 border-white/5 items-center justify-center">
-                          <Text className="text-3xl font-black text-white/20">?</Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <View className="z-10 mt-2">
-                      <Text className="text-[13px] font-black leading-tight text-white" numberOfLines={2}>{c.name}</Text>
-                      <Text className="text-[10px] font-bold mt-1 text-white/50 uppercase tracking-widest">{c.subj}</Text>
-                    </View>
+                  <View className="z-10 items-center">
+                    <Text className="text-[11px] font-black leading-tight text-white text-center" numberOfLines={2}>{c.name}</Text>
+                    <Text className="text-[9px] font-bold mt-1 text-white/50 uppercase tracking-widest">{c.subj}</Text>
                   </View>
-                </Pressable>
-              </MotiView>
+                </View>
+              </Pressable>
             ))}
-          </View>
-        </ScrollView>
+          </RadialScrollGallery>
 
+          <View className="px-6 mt-12 items-center opacity-30">
+             <Text className="text-xl font-black text-white uppercase tracking-widest">Keep scrolling</Text>
+             <Text className="text-[10px] mt-2 font-bold text-white uppercase tracking-widest">More relics locked</Text>
+          </View>
+        </Animated.ScrollView>
+
+        {/* Details Modal */}
         <Modal visible={!!open} transparent animationType="fade" onRequestClose={() => setOpen(null)}>
           <Pressable onPress={() => setOpen(null)} className="flex-1 items-center justify-center bg-[#121214]/90 p-6 backdrop-blur-xl">
             <MotiView
