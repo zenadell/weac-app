@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Pressable, Modal, Dimensions } from "react-native";
-import { MotiView, MotiImage } from "moti";
+import { MotiView } from "moti";
 import { X, Hexagon, Orbit, Award, Cpu, BookOpen, Fingerprint } from "lucide-react-native";
 import Animated, { useAnimatedScrollHandler, useSharedValue } from "react-native-reanimated";
 import AppShell from "../components/AppShell";
@@ -34,68 +34,122 @@ export default function VaultScreen() {
   return (
     <AppShell>
       <PageTransition>
-        <Animated.ScrollView 
+        <Animated.ScrollView
           onScroll={scrollHandler}
           scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false} 
-          contentContainerStyle={{ paddingBottom: 1200, paddingTop: 64 }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 800 }}
         >
-          <View className="px-6 mb-8 items-center z-20">
-            <Text className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-2">
+          {/* Header */}
+          <View style={{ paddingHorizontal: 24, paddingTop: 64, paddingBottom: 24, alignItems: "center" }}>
+            <Text
+              style={{
+                fontSize: 10, fontWeight: "800", letterSpacing: 3,
+                color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 8,
+              }}
+            >
               The Vault
             </Text>
-            <Text className="text-[3.5rem] font-black tracking-tight text-white leading-none text-center">
+            <Text
+              style={{
+                fontSize: 48, fontWeight: "900", letterSpacing: -2,
+                color: "#FFFFFF", lineHeight: 48, textAlign: "center",
+              }}
+            >
               Your Relics
             </Text>
-            <Text className="mt-4 text-[13px] font-bold text-primary uppercase tracking-widest text-center animate-bounce">
-              ↓ Scroll to inspect
+            <Text
+              style={{
+                marginTop: 16, fontSize: 13, fontWeight: "700",
+                color: "#FA675E", textTransform: "uppercase", letterSpacing: 2,
+                textAlign: "center",
+              }}
+            >
+              ↓ Scroll to rotate
             </Text>
           </View>
 
-          {/* Pinned Radial Scroll Gallery Component */}
-          <RadialScrollGallery 
-            scrollY={scrollY} 
-            radius={width * 0.45} 
-            itemSize={180} 
+          {/* The Radial Scroll Gallery */}
+          <RadialScrollGallery
+            scrollY={scrollY}
+            radius={Math.min(width * 0.48, 220)}
+            itemSize={140}
           >
             {allCards.map((c, i) => (
-              <Pressable 
-                key={c.id} 
-                onPress={() => { if (c.unlocked) { popBurst(0.5, 0.5); setOpen(c); } }}
-                className="w-full h-full"
+              <Pressable
+                key={c.id}
+                onPress={() => {
+                  if (c.unlocked) {
+                    try { popBurst(0.5, 0.5); } catch {}
+                    setOpen(c);
+                  }
+                }}
+                style={{ width: "100%", height: "100%" }}
               >
-                <View 
-                  className="w-full h-full rounded-[32px] overflow-hidden p-5 border relative items-center justify-center shadow-2xl"
-                  style={{ 
+                <View
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: 28,
+                    overflow: "hidden",
+                    padding: 16,
+                    borderWidth: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
                     backgroundColor: c.unlocked ? c.color + "1A" : "#1C1C24",
                     borderColor: c.unlocked ? c.color + "40" : "rgba(255,255,255,0.05)",
-                    opacity: c.unlocked ? 1 : 0.6,
+                    opacity: c.unlocked ? 1 : 0.5,
+                    // Shadow for depth
+                    shadowColor: c.unlocked ? c.color : "#000",
+                    shadowOffset: { width: 0, height: 8 },
+                    shadowOpacity: c.unlocked ? 0.3 : 0.1,
+                    shadowRadius: 16,
+                    elevation: 8,
                   }}
                 >
-                  {c.unlocked && (
-                    <View className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40" />
-                  )}
-                  
                   {c.unlocked ? (
                     <MotiView
                       from={{ translateY: 0 }}
-                      animate={{ translateY: -5 }}
+                      animate={{ translateY: -4 }}
                       transition={{ loop: true, type: "timing", duration: 2000 + i * 200, direction: "alternate" }}
-                      className="size-20 rounded-[20px] items-center justify-center border-2 border-white/20 mb-3"
-                      style={{ backgroundColor: c.color, shadowColor: c.color, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 15 }}
+                      style={{
+                        width: 56, height: 56, borderRadius: 18,
+                        alignItems: "center", justifyContent: "center",
+                        borderWidth: 2, borderColor: "rgba(255,255,255,0.2)",
+                        backgroundColor: c.color, marginBottom: 10,
+                        shadowColor: c.color, shadowOffset: { width: 0, height: 8 },
+                        shadowOpacity: 0.5, shadowRadius: 12,
+                      }}
                     >
-                      <c.icon size={32} color="#FFFFFF" strokeWidth={2} />
+                      <c.icon size={26} color="#FFFFFF" strokeWidth={2} />
                     </MotiView>
                   ) : (
-                    <View className="size-20 rounded-[20px] bg-[#2A2A35] border-2 border-white/5 items-center justify-center mb-3">
-                      <Text className="text-3xl font-black text-white/20">?</Text>
+                    <View
+                      style={{
+                        width: 56, height: 56, borderRadius: 18,
+                        backgroundColor: "#2A2A35", borderWidth: 2,
+                        borderColor: "rgba(255,255,255,0.05)",
+                        alignItems: "center", justifyContent: "center", marginBottom: 10,
+                      }}
+                    >
+                      <Text style={{ fontSize: 24, fontWeight: "900", color: "rgba(255,255,255,0.2)" }}>?</Text>
                     </View>
                   )}
 
-                  <View className="z-10 items-center">
-                    <Text className="text-[14px] font-black leading-tight text-white text-center" numberOfLines={2}>{c.name}</Text>
-                    <Text className="text-[10px] font-bold mt-2 text-white/50 uppercase tracking-widest">{c.subj}</Text>
-                  </View>
+                  <Text
+                    style={{ fontSize: 12, fontWeight: "900", color: "#FFFFFF", textAlign: "center" }}
+                    numberOfLines={2}
+                  >
+                    {c.name}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 9, fontWeight: "700", marginTop: 4,
+                      color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: 1.5,
+                    }}
+                  >
+                    {c.subj}
+                  </Text>
                 </View>
               </Pressable>
             ))}
@@ -104,39 +158,77 @@ export default function VaultScreen() {
 
         {/* Details Modal */}
         <Modal visible={!!open} transparent animationType="fade" onRequestClose={() => setOpen(null)}>
-          <Pressable onPress={() => setOpen(null)} className="flex-1 items-center justify-center bg-[#121214]/90 p-6 backdrop-blur-xl">
+          <Pressable
+            onPress={() => setOpen(null)}
+            style={{
+              flex: 1, alignItems: "center", justifyContent: "center",
+              backgroundColor: "rgba(18,18,20,0.92)", padding: 24,
+            }}
+          >
             <MotiView
-              from={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              from={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 280, damping: 24 }}
               style={{ width: "100%", maxWidth: 320 }}
             >
               {open && (
-                <View 
-                  className="rounded-[40px] p-8 border relative overflow-hidden items-center"
-                  style={{ backgroundColor: open.color + "20", borderColor: open.color }}
+                <View
+                  style={{
+                    borderRadius: 40, padding: 32, borderWidth: 1,
+                    overflow: "hidden", alignItems: "center",
+                    backgroundColor: open.color + "20", borderColor: open.color,
+                  }}
                 >
-                  <View className="absolute inset-0 bg-black/40" />
-                  
-                  <Pressable onPress={() => setOpen(null)} className="absolute right-5 top-5 z-20 size-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-md">
+                  <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.4)" }} />
+
+                  <Pressable
+                    onPress={() => setOpen(null)}
+                    style={{
+                      position: "absolute", right: 20, top: 20, zIndex: 20,
+                      width: 40, height: 40, alignItems: "center", justifyContent: "center",
+                      borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)",
+                    }}
+                  >
                     <X size={20} color="#FFFFFF" />
                   </Pressable>
 
                   <MotiView
-                    from={{ rotate: "0deg", translateY: 0 }}
-                    animate={{ rotate: "360deg", translateY: -10 }}
+                    from={{ rotate: "0deg" }}
+                    animate={{ rotate: "360deg" }}
                     transition={{ loop: true, type: "timing", duration: 12000 }}
-                    className="size-32 rounded-[40px] items-center justify-center border-4 border-white/20 z-10 shadow-2xl mt-8"
-                    style={{ backgroundColor: open.color }}
+                    style={{
+                      width: 120, height: 120, borderRadius: 36,
+                      alignItems: "center", justifyContent: "center",
+                      borderWidth: 4, borderColor: "rgba(255,255,255,0.2)",
+                      zIndex: 10, marginTop: 32, backgroundColor: open.color,
+                      shadowColor: open.color, shadowOffset: { width: 0, height: 0 },
+                      shadowOpacity: 0.6, shadowRadius: 24, elevation: 15,
+                    }}
                   >
-                    <open.icon size={64} color="#FFFFFF" strokeWidth={1.5} />
+                    <open.icon size={56} color="#FFFFFF" strokeWidth={1.5} />
                   </MotiView>
 
-                  <View className="z-10 items-center mt-12 w-full">
-                    <View className="rounded-full bg-white/10 px-3 py-1.5 border border-white/20 mb-4">
-                      <Text className="text-[10px] font-black uppercase tracking-widest text-white">{open.rarity} Relic</Text>
+                  <View style={{ zIndex: 10, alignItems: "center", marginTop: 40, width: "100%" }}>
+                    <View
+                      style={{
+                        borderRadius: 999, backgroundColor: "rgba(255,255,255,0.1)",
+                        paddingHorizontal: 12, paddingVertical: 6,
+                        borderWidth: 1, borderColor: "rgba(255,255,255,0.2)", marginBottom: 16,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: "900", color: "#FFFFFF", textTransform: "uppercase", letterSpacing: 2 }}>
+                        {open.rarity} Relic
+                      </Text>
                     </View>
-                    <Text className="text-3xl font-black text-white text-center leading-none">{open.name}</Text>
-                    <Text className="text-[13px] font-bold text-white/50 text-center mt-4 leading-relaxed px-4">
+                    <Text style={{ fontSize: 28, fontWeight: "900", color: "#FFFFFF", textAlign: "center", lineHeight: 30 }}>
+                      {open.name}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 13, fontWeight: "600", color: "rgba(255,255,255,0.5)",
+                        textAlign: "center", marginTop: 16, lineHeight: 20, paddingHorizontal: 16,
+                      }}
+                    >
                       {open.lore}
                     </Text>
                   </View>
@@ -145,7 +237,6 @@ export default function VaultScreen() {
             </MotiView>
           </Pressable>
         </Modal>
-
       </PageTransition>
     </AppShell>
   );
