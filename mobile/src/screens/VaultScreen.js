@@ -10,6 +10,7 @@ import Animated, {
   runOnJS,
   clamp,
 } from "react-native-reanimated";
+import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import AppShell from "../components/AppShell";
 import PageTransition from "../components/PageTransition";
@@ -33,6 +34,7 @@ const STEP = 100;
 const MAX_SCROLL = STEP * (ITEMS - 1);
 
 export default function VaultScreen() {
+  const navigation = useNavigation();
   const scrollY = useSharedValue(0);
   const savedY = useSharedValue(0);
   const [focusedIndex, setFocusedIndex] = useState(0);
@@ -98,17 +100,15 @@ export default function VaultScreen() {
 
           {/* ─── HEADER ─── */}
           <View style={styles.header}>
-            <View style={styles.headerTop}>
-              <Text style={styles.label}>THE VAULT</Text>
-              <View style={styles.progressPill}>
-                <Text style={styles.progressText}>{unlockedCount}/{ITEMS}</Text>
-                <View style={styles.progressTrack}>
-                  <View style={[styles.progressFill, { width: `${(unlockedCount / ITEMS) * 100}%` }]} />
-                </View>
+            <Text style={styles.label}>THE VAULT</Text>
+            <Text style={styles.title}>Your Relics</Text>
+            
+            <View style={styles.progressPill}>
+              <Text style={styles.progressText}>{unlockedCount}/{ITEMS}</Text>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${(unlockedCount / ITEMS) * 100}%` }]} />
               </View>
             </View>
-            
-            <Text style={styles.title}>Your Relics</Text>
           </View>
 
           {/* ─── FOCUSED RELIC INFO PANEL ─── */}
@@ -167,10 +167,13 @@ export default function VaultScreen() {
                       <Text style={styles.powerText}>{focused.power}</Text>
                     </View>
                   ) : (
-                    <View style={styles.lockedBadge}>
+                    <Pressable 
+                      style={styles.lockedBadge}
+                      onPress={() => navigation.navigate("Subject", { id: "1" })}
+                    >
                       <Shield size={14} color="rgba(255,255,255,0.5)" strokeWidth={2.5} />
                       <Text style={styles.lockedText}>Locked — Complete challenge to earn</Text>
-                    </View>
+                    </Pressable>
                   )}
                 </View>
 
@@ -274,29 +277,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24, 
     paddingTop: 60, 
     paddingBottom: 20, 
-    zIndex: 10 
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8
+    zIndex: 10,
+    alignItems: 'center'
   },
   label: { 
     fontSize: 11, 
     fontWeight: "800", 
     letterSpacing: 4, 
     color: "rgba(255,255,255,0.4)", 
-    textTransform: "uppercase" 
+    textTransform: "uppercase",
+    marginBottom: 8
   },
   progressPill: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.05)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 999,
-    gap: 8
+    gap: 8,
+    marginTop: 12
   },
   progressText: { 
     fontSize: 11, 
