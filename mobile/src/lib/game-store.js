@@ -33,7 +33,7 @@ const defaultState = {
   lastReward: null,
   // Mobile addition — student profile from registration
   profile: { 
-    name: "", country: "", school: "", examType: "", subjects: [], examYear: 0, onboarded: false,
+    name: "", avatarClass: "", gradeLevel: "", pathway: "", subjects: [], commitment: "", onboarded: false,
     settings: { sound: true, haptics: true, language: "English" }
   },
 };

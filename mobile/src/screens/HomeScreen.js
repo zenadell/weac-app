@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { View, Text, Pressable, ScrollView, Dimensions, StyleSheet } from "react-native";
 import { MotiView } from "moti";
 import { useNavigation } from "@react-navigation/native";
-import { Flame, Play, Target, Trophy, Zap, Crown, Star, Shield, LayoutGrid } from "lucide-react-native";
+import { Flame, Play, Target, Trophy, Zap, Crown, Star, Shield, LayoutGrid, Swords } from "lucide-react-native";
 import AppShell from "../components/AppShell";
 import { useGame } from "../lib/game-store";
 import { subjectList } from "../lib/subjects";
@@ -10,6 +10,20 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence, interpolate } from "react-native-reanimated";
 
 const { width } = Dimensions.get("window");
+
+const AVATAR_MAP = {
+  speedster: Zap,
+  warrior: Swords,
+  mage: Star,
+  guardian: Shield,
+};
+
+const PATHWAY_LABELS = {
+  stem: "STEM Explorer",
+  humanities: "Humanities Sage",
+  languages: "Language Master",
+  global: "Global Exams",
+};
 
 function PlayButton() {
   const pulse = useSharedValue(0);
@@ -53,6 +67,17 @@ export default function HomeScreen() {
   const { level, xp, xpToNext, profile } = game;
   const pct = Math.min(100, (xp / xpToNext) * 100);
 
+  const AvatarIcon = AVATAR_MAP[profile?.avatarClass] || Star;
+  const pathwayLabel = PATHWAY_LABELS[profile?.pathway] || profile?.gradeLevel || "Emerald League";
+  
+  // Filter subjects based on user selection, fallback to all
+  const displaySubjects = profile?.subjects?.length > 0 
+    ? subjectList.filter(s => profile.subjects.includes(s.id))
+    : subjectList;
+
+  // Ensure we have at least some subjects to show
+  const finalSubjects = displaySubjects.length > 0 ? displaySubjects : subjectList;
+
   return (
     <AppShell>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
@@ -72,7 +97,7 @@ export default function HomeScreen() {
                   style={styles.avatarBorder}
                 >
                   <View className="size-14 rounded-full bg-[#121214] items-center justify-center">
-                    <Text className="text-xl font-black text-white">{profile?.name?.charAt(0) || "P"}</Text>
+                    <AvatarIcon size={24} color="#FFFFFF" />
                   </View>
                 </LinearGradient>
                 <View style={styles.levelBadge}>
@@ -82,7 +107,7 @@ export default function HomeScreen() {
             </Pressable>
             <View>
               <Text style={styles.playerName}>{profile?.name || "Player 1"}</Text>
-              <Text style={styles.leagueText}>Emerald League</Text>
+              <Text style={styles.leagueText}>{pathwayLabel}</Text>
             </View>
           </View>
 
@@ -159,7 +184,7 @@ export default function HomeScreen() {
             snapToInterval={width * 0.4 + 16}
             decelerationRate="fast"
           >
-            {subjectList.map((s, i) => {
+            {finalSubjects.map((s, i) => {
               const colors = ["#90CAF9", "#CE93D8", "#FFB63B", "#30C5A0", "#FA675E"];
               const bgColor = colors[i % colors.length];
               
@@ -282,6 +307,7 @@ const styles = StyleSheet.create({
     padding: 20,
     height: 160,
     borderWidth: 1,
+    borderColor: 'rgba(255, 182, 59, 0.2)',
     overflow: 'hidden',
   },
   iconCircle: {

@@ -2,16 +2,31 @@ import React from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { MotiView } from "moti";
 import { useNavigation } from "@react-navigation/native";
-import { Settings, History, Shield, GraduationCap, ChevronRight, Zap, Target } from "lucide-react-native";
+import { Settings, History, Shield, GraduationCap, ChevronRight, Zap, Target, Swords, Star } from "lucide-react-native";
 import AppShell from "../components/AppShell";
 import PageTransition from "../components/PageTransition";
 import { useGame } from "../lib/game-store";
+import { LinearGradient } from "expo-linear-gradient";
 
-const schools = [
-  { rank: 1, name: "Loyola Jesuit, Abuja", xp: "12.4k", mine: false },
-  { rank: 2, name: "Achimota School, Accra", xp: "11.2k", mine: false },
-  { rank: 3, name: "King's College, Lagos", xp: "9.8k", mine: true },
-  { rank: 4, name: "Queen's College, Lagos", xp: "9.1k", mine: false },
+const AVATAR_MAP = {
+  speedster: Zap,
+  warrior: Swords,
+  mage: Star,
+  guardian: Shield,
+};
+
+const PATHWAY_LABELS = {
+  stem: "STEM Explorer",
+  humanities: "Humanities Sage",
+  languages: "Language Master",
+  global: "Global Exams",
+};
+
+const legends = [
+  { rank: 1, name: "NeonPhantom", xp: "12.4k", mine: false },
+  { rank: 2, name: "PixelMage", xp: "11.2k", mine: false },
+  { rank: 3, name: "Player 1", xp: "9.8k", mine: true },
+  { rank: 4, name: "CyberRanger", xp: "9.1k", mine: false },
 ];
 
 export default function ProfileScreen() {
@@ -19,12 +34,12 @@ export default function ProfileScreen() {
   const game = useGame();
   const profile = game?.profile || {};
   
-  const displayName = profile?.name || "Player";
-  const initials = displayName.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
-  const schoolName = profile?.school || "Your School";
+  const displayName = profile?.name || "Player 1";
+  const AvatarIcon = AVATAR_MAP[profile?.avatarClass] || Star;
+  const pathwayLabel = PATHWAY_LABELS[profile?.pathway] || profile?.gradeLevel || "Emerald League";
 
   const rows = [
-    { icon: GraduationCap, label: "My Arsenal",      value: schoolName, to: "Profile" },
+    { icon: GraduationCap, label: "My Arsenal",      value: `${profile?.subjects?.length || 0} Subjects`, to: "Profile" },
     { icon: History,       label: "Combat Log",  value: "47 duels",  to: "History" },
     { icon: Settings,      label: "Preferences",    to: "Settings" },
     { icon: Shield,        label: "Privacy & Data", to: "Settings" },
@@ -47,9 +62,14 @@ export default function ProfileScreen() {
               </View>
 
               <View className="relative">
-                <View className="size-28 rounded-[32px] bg-[#121214] items-center justify-center border-4 border-white/10">
-                  <Text className="text-5xl font-black text-white">{initials}</Text>
-                </View>
+                <LinearGradient
+                  colors={['#30C5A0', '#1C8A6E']}
+                  style={{ padding: 4, borderRadius: 36 }}
+                >
+                  <View className="size-24 rounded-[32px] bg-[#121214] items-center justify-center border-4 border-black/50">
+                    <AvatarIcon size={40} color="#FFFFFF" />
+                  </View>
+                </LinearGradient>
                 <View className="absolute -bottom-3 -right-3 px-3 py-1 rounded-full bg-[#30C5A0] border-4 border-purple">
                   <Text className="text-[13px] font-black text-[#121214]">LVL {game.level || 1}</Text>
                 </View>
@@ -59,7 +79,7 @@ export default function ProfileScreen() {
                 {displayName}
               </Text>
               <Text className="mt-3 text-[13px] font-bold text-white/70 uppercase tracking-widest bg-black/20 px-4 py-2 rounded-full">
-                {schoolName} • {profile?.country || "Earth"}
+                {pathwayLabel}
               </Text>
             </MotiView>
           </View>
@@ -89,7 +109,7 @@ export default function ProfileScreen() {
           <View className="px-6 mb-8">
             <Text className="text-[2rem] font-black tracking-tight text-white mb-6">Local Legends</Text>
             <View className="overflow-hidden rounded-[32px] bg-[#1C1C24] border border-white/5 p-2">
-              {schools.map((s, i) => (
+              {legends.map((s, i) => (
                 <MotiView
                   key={s.rank}
                   from={{ opacity: 0, translateX: -10 }} animate={{ opacity: 1, translateX: 0 }}
@@ -99,7 +119,7 @@ export default function ProfileScreen() {
                   <Text className={`w-8 text-lg font-black ${s.rank === 1 ? "text-[#FFB63B]" : "text-muted-foreground"}`}>
                     #{s.rank}
                   </Text>
-                  <Text className={`flex-1 text-[15px] font-bold ${s.mine ? "text-primary" : "text-white"}`}>{s.name}</Text>
+                  <Text className={`flex-1 text-[15px] font-bold ${s.mine ? "text-primary" : "text-white"}`}>{s.mine ? displayName : s.name}</Text>
                   {s.mine && (
                     <View className="rounded-full bg-primary px-3 py-1 mr-2">
                       <Text className="text-[10px] font-black text-[#121214]">YOU</Text>
