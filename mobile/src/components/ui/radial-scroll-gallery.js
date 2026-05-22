@@ -9,23 +9,22 @@ import Animated, {
 const SCREEN_WIDTH = Math.min(Dimensions.get('window').width, 480);
 
 /**
- * A single item on the wheel, extracted into its own component
- * so useAnimatedStyle is called at the top level (Rules of Hooks safe).
+ * A single item on the wheel, extracted so useAnimatedStyle is hooks-safe.
  */
 function RadialItem({ child, index, count, radius, itemSize, scrollY }) {
   const baseAngleDeg = (index / count) * 360;
 
   const style = useAnimatedStyle(() => {
-    // Map scroll to rotation: 1200px scroll = full 360°
+    // Map scroll to rotation: 800px of gesture = full 360°
     const scrollRotation = interpolate(
       scrollY.value,
-      [0, 1200],
+      [0, 800],
       [0, 360],
       Extrapolation.EXTEND
     );
 
-    // This item's current angle (in degrees) including scroll rotation
-    // Subtract 90 so index 0 starts at the TOP (12 o'clock)
+    // This item's current angle including scroll rotation
+    // Start at top (12 o'clock = -90° in standard math)
     const currentAngleDeg = baseAngleDeg + scrollRotation - 90;
     const currentAngleRad = (currentAngleDeg * Math.PI) / 180;
 
@@ -33,44 +32,34 @@ function RadialItem({ child, index, count, radius, itemSize, scrollY }) {
     const x = radius * Math.cos(currentAngleRad);
     const y = radius * Math.sin(currentAngleRad);
 
-    // Normalize angle to 0-360 to determine visibility
-    // Items near the top (y < 0) are visible, items at the bottom (y > 0) are hidden
-    const normalizedDeg = ((currentAngleDeg % 360) + 360) % 360;
-
-    // Distance from the top position (270° in standard math coords = top)
-    // Actually our top is at -90° offset, so top items have y < 0
-    // Use y directly: y < 0 means visible (above center), y > 0 means below
+    // y < 0 means above center (visible), y > 0 means below center (hidden)
     const verticalProgress = y / radius; // -1 (top) to +1 (bottom)
 
-    // Fade out items as they go below the horizon
+    // Smooth fade: fully visible at top, fade out toward bottom
     const opacity = interpolate(
       verticalProgress,
-      [-1, -0.2, 0.3, 0.8],
-      [1, 1, 0.4, 0],
+      [-1, -0.3, 0.2, 0.6],
+      [1, 1, 0.5, 0],
       Extrapolation.CLAMP
     );
 
     // Scale: biggest at top, smaller toward bottom
     const scale = interpolate(
       verticalProgress,
-      [-1, 0, 0.5],
-      [1.05, 0.9, 0.7],
+      [-1, -0.5, 0, 0.5],
+      [1.08, 1, 0.88, 0.7],
       Extrapolation.CLAMP
     );
 
     // Z-ordering: items at top should be in front
-    const zIndex = Math.round(interpolate(
-      verticalProgress,
-      [-1, 1],
-      [100, 0],
-      Extrapolation.CLAMP
-    ));
+    const zIndex = Math.round(
+      interpolate(verticalProgress, [-1, 1], [100, 0], Extrapolation.CLAMP)
+    );
 
     return {
       position: 'absolute',
       width: itemSize,
       height: itemSize,
-      // Center the item on its computed position
       left: x - itemSize / 2,
       top: y - itemSize / 2,
       opacity,
@@ -85,50 +74,44 @@ function RadialItem({ child, index, count, radius, itemSize, scrollY }) {
 /**
  * RadialScrollGallery
  *
- * A scroll-driven rotating wheel. Items are arranged in a circle.
- * The circle's center is pushed to the bottom of the visible container,
- * so only the top arc of items is visible — like a Ferris wheel rising
- * from below the fold.
+ * Displays children in a circular arc. Rotation is driven by the
+ * `scrollY` shared value. The circle center is pushed downward so
+ * only the top arc is visible (like a Ferris wheel).
  *
- * scrollY: Reanimated shared value tracking vertical scroll offset.
+ * This component does NOT scroll itself — it just renders the wheel.
+ * The parent is responsible for capturing gestures and feeding scrollY.
  */
 export function RadialScrollGallery({
   children,
   scrollY,
-  radius = SCREEN_WIDTH * 0.48,
-  itemSize = 150,
-  visibleHeight,
+  radius = SCREEN_WIDTH * 0.42,
+  itemSize = 140,
 }) {
   const childrenArray = React.Children.toArray(children);
   const count = childrenArray.length;
 
-  // The visible height of the gallery container.
-  // We show about 60% of the circle above the "horizon".
-  const containerHeight = visibleHeight || radius * 1.4 + itemSize;
+  // Container height: show roughly the top 55% of the circle + item overflow
+  const containerHeight = radius * 1.2 + itemSize;
 
   return (
     <View
       style={{
         width: '100%',
         height: containerHeight,
-        overflow: 'hidden',
+        // NO overflow hidden — let cards bleed to edges naturally
         alignItems: 'center',
+        justifyContent: 'flex-end',
       }}
     >
-      {/*
-        This inner View acts as the coordinate origin for the circle.
-        By positioning it at the bottom-center of the container,
-        the top arc of the circle is visible and the bottom is clipped.
+      {/* 
+        The origin point. Positioned at the bottom-center of the container.
+        Items radiate outward from here in a circle.
       */}
       <View
         style={{
-          position: 'absolute',
-          bottom: -(radius * 0.5), // Push center down so top arc is prominent
-          left: '50%',
-          marginLeft: 0, // We center items via left offset in RadialItem
           width: 0,
           height: 0,
-          // This 0x0 view is the origin. All children position absolutely from here.
+          marginBottom: -(radius * 0.35), // Push center slightly below container
         }}
       >
         {childrenArray.map((child, index) => (
