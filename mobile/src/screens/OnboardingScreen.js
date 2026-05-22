@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { View, Text, Dimensions, StyleSheet } from "react-native";
+import React, { useRef, useState, useEffect } from "react";
+import { View, Text, Dimensions, StyleSheet, Pressable } from "react-native";
 import { MotiView } from "moti";
 import { useNavigation } from "@react-navigation/native";
 import Animated, {
@@ -8,14 +8,18 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
+  withRepeat,
+  withSequence,
+  withTiming,
+  useAnimatedRef,
 } from "react-native-reanimated";
-import { MotiPressable } from "../components/primitives/MotiPressable";
 import { play } from "../lib/sounds";
 import { useGame } from "../lib/game-store";
 import { ScrollingAnimation } from "../components/ui/scrolling-animation";
 import { ArrowRight, Swords, Sparkles, Trophy } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const SLIDES = [
   {
@@ -23,8 +27,6 @@ const SLIDES = [
     headline: "Welcome to\nThe Arena.",
     sub: "Thousands of elite students are battling daily. Step up.",
     media: "custom",
-    icon: null,
-    iconColor: null,
   },
   {
     id: "2",
@@ -32,7 +34,7 @@ const SLIDES = [
     sub: "60-second exam sprints against real opponents. High stakes.",
     media: "icon",
     icon: Swords,
-    iconColor: "#FA675E",
+    color: "#FA675E",
   },
   {
     id: "3",
@@ -40,7 +42,7 @@ const SLIDES = [
     sub: "Topic predictions powered by 15 years of live exam data.",
     media: "icon",
     icon: Sparkles,
-    iconColor: "#CE93D8",
+    color: "#30C5A0",
   },
   {
     id: "4",
@@ -48,7 +50,7 @@ const SLIDES = [
     sub: "Dominate the global leaderboards and earn Mythic relics.",
     media: "icon",
     icon: Trophy,
-    iconColor: "#FFB63B",
+    color: "#FFB63B",
   },
 ];
 
@@ -59,19 +61,11 @@ function Dot({ index, scrollX }) {
       index * SCREEN_WIDTH,
       (index + 1) * SCREEN_WIDTH,
     ];
-    const width = interpolate(
-      scrollX.value,
-      inputRange,
-      [8, 32, 8],
-      Extrapolation.CLAMP
-    );
-    const opacity = interpolate(
-      scrollX.value,
-      inputRange,
-      [0.2, 1, 0.2],
-      Extrapolation.CLAMP
-    );
-    return { width, opacity };
+    const width = interpolate(scrollX.value, inputRange, [8, 32, 8], Extrapolation.CLAMP);
+    const opacity = interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], Extrapolation.CLAMP);
+    const backgroundColor = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP) > 0.5 ? '#FFF' : '#FFF';
+
+    return { width, opacity, backgroundColor };
   });
 
   return (
@@ -80,7 +74,6 @@ function Dot({ index, scrollX }) {
         {
           height: 8,
           borderRadius: 4,
-          backgroundColor: "#FFFFFF",
           marginHorizontal: 4,
         },
         animatedStyle,
@@ -89,73 +82,57 @@ function Dot({ index, scrollX }) {
   );
 }
 
-/**
- * Safe icon-based slide media for slides 2-4.
- * Uses Lucide vector icons with pulsing rings.
- */
-function IconMedia({ Icon, color, isActive }) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      {/* Pulsing outer ring */}
-      <MotiView
-        from={{ scale: 0.8, opacity: 0 }}
-        animate={{
-          scale: isActive ? [1, 1.3, 1] : 0.8,
-          opacity: isActive ? [0.3, 0, 0.3] : 0,
-        }}
-        transition={{ loop: true, type: "timing", duration: 2500 }}
-        style={{
-          position: "absolute",
-          width: 200,
-          height: 200,
-          borderRadius: 100,
-          borderWidth: 2,
-          borderColor: color,
-        }}
-      />
-      <MotiView
-        from={{ scale: 0.8, opacity: 0 }}
-        animate={{
-          scale: isActive ? [1, 1.5, 1] : 0.8,
-          opacity: isActive ? [0.15, 0, 0.15] : 0,
-        }}
-        transition={{ loop: true, type: "timing", duration: 3000 }}
-        style={{
-          position: "absolute",
-          width: 260,
-          height: 260,
-          borderRadius: 130,
-          borderWidth: 1,
-          borderColor: color,
-        }}
-      />
+function PulseIcon({ Icon, color, isActive }) {
+  const pulse = useSharedValue(0);
 
-      {/* Central icon disc */}
+  useEffect(() => {
+    if (isActive) {
+      pulse.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 1500 }),
+          withTiming(0, { duration: 1500 })
+        ),
+        -1, // infinite loop
+        true
+      );
+    } else {
+      pulse.value = withTiming(0);
+    }
+  }, [isActive, pulse]);
+
+  const ring1Style = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: interpolate(pulse.value, [0, 1], [1, 1.4]) }],
+      opacity: interpolate(pulse.value, [0, 1], [0.4, 0]),
+    };
+  });
+
+  const ring2Style = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: interpolate(pulse.value, [0, 1], [1, 1.8]) }],
+      opacity: interpolate(pulse.value, [0, 1], [0.15, 0]),
+    };
+  });
+
+  return (
+    <View style={styles.iconMediaContainer}>
+      {/* Outer Pulse */}
+      <Animated.View style={[styles.ring, { borderColor: color, width: 220, height: 220, borderRadius: 110 }, ring2Style]} />
+      {/* Inner Pulse */}
+      <Animated.View style={[styles.ring, { borderColor: color, width: 150, height: 150, borderRadius: 75 }, ring1Style]} />
+      
       <MotiView
-        from={{ scale: 0 }}
-        animate={{ scale: isActive ? 1 : 0.5 }}
-        transition={{ type: "spring", damping: 14 }}
-        style={{
-          width: 140,
-          height: 140,
-          borderRadius: 70,
-          backgroundColor: color,
-          alignItems: "center",
-          justifyContent: "center",
-          shadowColor: color,
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.6,
-          shadowRadius: 30,
-          elevation: 15,
+        animate={{
+          scale: isActive ? 1 : 0.5,
+          backgroundColor: isActive ? color : 'rgba(255,255,255,0.05)',
         }}
+        transition={{ type: 'spring', damping: 14 }}
+        style={[
+          styles.iconDisc, 
+          isActive && { shadowColor: color, shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.6, shadowRadius: 24, elevation: 15 }
+        ]}
       >
-        <Icon size={60} color="#121214" strokeWidth={2} />
+        <Icon size={56} color={isActive ? "#000" : "rgba(255,255,255,0.2)"} strokeWidth={2.5} />
       </MotiView>
     </View>
   );
@@ -166,7 +143,7 @@ export default function OnboardingScreen() {
   const { setProfile } = useGame();
   const scrollX = useSharedValue(0);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollRef = useRef(null);
+  const scrollRef = useAnimatedRef();
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -184,6 +161,8 @@ export default function OnboardingScreen() {
   };
 
   const isLast = currentIndex === SLIDES.length - 1;
+  const currentSlide = SLIDES[currentIndex];
+  const activeColor = currentSlide.color || '#FFF';
 
   const handleNext = () => {
     if (isLast) {
@@ -194,6 +173,7 @@ export default function OnboardingScreen() {
         x: (currentIndex + 1) * SCREEN_WIDTH,
         animated: true,
       });
+      setCurrentIndex(currentIndex + 1);
     }
   };
 
@@ -203,7 +183,14 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#121214" }}>
+    <View style={styles.container}>
+      {/* Subtle Background Glow behind the scrollview based on slide color */}
+      <MotiView
+        animate={{ backgroundColor: activeColor }}
+        transition={{ type: 'timing', duration: 800 }}
+        style={styles.ambientGlow}
+      />
+
       <Animated.ScrollView
         ref={scrollRef}
         horizontal
@@ -213,28 +200,16 @@ export default function OnboardingScreen() {
         onMomentumScrollEnd={handleScrollEnd}
         scrollEventThrottle={16}
         bounces={false}
-        style={{ flex: 1 }}
+        style={{ flex: 1, zIndex: 10 }}
+        contentContainerStyle={{ width: SCREEN_WIDTH * SLIDES.length }}
       >
         {SLIDES.map((slide, index) => {
           const isActive = currentIndex === index;
           return (
-            <View
-              key={slide.id}
-              style={{
-                width: SCREEN_WIDTH,
-                flex: 1,
-                padding: 24,
-                paddingTop: 80,
-              }}
-            >
-              {/* Media Container */}
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+            <View key={slide.id} style={styles.slide}>
+              
+              {/* Media Section */}
+              <View style={styles.mediaSection}>
                 <MotiView
                   from={{ opacity: 0, scale: 0.8 }}
                   animate={{
@@ -242,77 +217,62 @@ export default function OnboardingScreen() {
                     scale: isActive ? 1 : 0.8,
                   }}
                   transition={{ type: "spring", damping: 18, stiffness: 280 }}
-                  style={{ width: "100%", height: "80%" }}
+                  style={{ width: "100%", height: "100%" }}
                 >
                   {slide.media === "custom" && (
                     <ScrollingAnimation scrollX={scrollX} index={index} />
                   )}
                   {slide.media === "icon" && slide.icon && (
-                    <IconMedia
+                    <PulseIcon
                       Icon={slide.icon}
-                      color={slide.iconColor}
+                      color={slide.color}
                       isActive={isActive}
                     />
                   )}
                 </MotiView>
               </View>
 
-              {/* Text Container */}
-              <View
-                style={{
-                  height: 180,
-                  justifyContent: "flex-end",
-                  paddingBottom: 70,
-                }}
-              >
+              {/* Text Section */}
+              <View style={styles.textSection}>
                 <MotiView
-                  from={{ opacity: 0, translateY: 20 }}
+                  from={{ opacity: 0, translateY: 40 }}
                   animate={{
                     opacity: isActive ? 1 : 0,
-                    translateY: isActive ? 0 : 20,
+                    translateY: isActive ? 0 : 40,
                   }}
-                  transition={{ delay: 200, type: "spring", damping: 20 }}
+                  transition={{ delay: 100, type: "spring", damping: 20 }}
                 >
-                  <Text
-                    style={{
-                      fontSize: 38,
-                      fontWeight: "900",
-                      color: "#FFFFFF",
-                      letterSpacing: -1,
-                      lineHeight: 40,
-                      marginBottom: 12,
-                    }}
-                  >
+                  <Text style={styles.headline}>
                     {slide.headline}
                   </Text>
                 </MotiView>
                 <MotiView
-                  from={{ opacity: 0, translateY: 20 }}
+                  from={{ opacity: 0, translateY: 30 }}
                   animate={{
                     opacity: isActive ? 1 : 0,
-                    translateY: isActive ? 0 : 20,
+                    translateY: isActive ? 0 : 30,
                   }}
-                  transition={{ delay: 300, type: "spring", damping: 20 }}
+                  transition={{ delay: 200, type: "spring", damping: 20 }}
                 >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontWeight: "500",
-                      color: "rgba(255,255,255,0.5)",
-                      lineHeight: 24,
-                      paddingRight: 32,
-                    }}
-                  >
+                  <Text style={styles.subtext}>
                     {slide.sub}
                   </Text>
                 </MotiView>
               </View>
+
             </View>
           );
         })}
       </Animated.ScrollView>
 
-      {/* Footer */}
+      {/* Dark gradient at the bottom to ensure text readability */}
+      <LinearGradient
+        colors={['transparent', 'rgba(9,9,11,0.8)', 'rgba(9,9,11,1)']}
+        style={styles.bottomGradient}
+        pointerEvents="none"
+      />
+
+      {/* Fixed Footer UI */}
       <View style={styles.footer}>
         <View style={styles.dotsContainer}>
           {SLIDES.map((_, i) => (
@@ -321,53 +281,24 @@ export default function OnboardingScreen() {
         </View>
 
         <View style={styles.buttonsContainer}>
-          <MotiPressable
-            onPress={handleSkip}
-            style={styles.skipBtn}
-            haptic={false}
-            sound={null}
-          >
-            <Text
-              style={{
-                fontSize: 15,
-                fontWeight: "700",
-                color: "rgba(255,255,255,0.35)",
-                textTransform: "uppercase",
-                letterSpacing: 2,
-              }}
-            >
-              Skip
-            </Text>
-          </MotiPressable>
+          <Pressable onPress={handleSkip} style={styles.skipBtn}>
+            <Text style={styles.skipText}>SKIP</Text>
+          </Pressable>
 
-          <MotiPressable
-            onPress={handleNext}
-            style={{
-              height: 56,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              borderRadius: 9999,
-              backgroundColor: "#FA675E",
-              paddingHorizontal: 32,
-              borderWidth: 1,
-              borderColor: "#FA675E",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 17,
-                fontWeight: "900",
-                color: "#121214",
-              }}
+          <Pressable onPress={handleNext} style={styles.nextBtnWrapper}>
+            <MotiView
+              animate={{ backgroundColor: activeColor }}
+              transition={{ type: 'timing', duration: 400 }}
+              style={styles.nextBtn}
             >
-              {isLast ? "Begin Journey" : "Next"}
-            </Text>
-            {isLast && (
-              <ArrowRight size={20} color="#121214" strokeWidth={2.5} />
-            )}
-          </MotiPressable>
+              <Text style={styles.nextText}>{isLast ? "Begin" : "Next"}</Text>
+              {isLast ? (
+                <ArrowRight size={22} color="#000" strokeWidth={3} />
+              ) : (
+                <ArrowRight size={22} color="#000" strokeWidth={3} />
+              )}
+            </MotiView>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -375,13 +306,70 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: { 
+    flex: 1, 
+    backgroundColor: "#09090B" // Ultra dark modern
+  },
+  ambientGlow: {
+    position: 'absolute',
+    top: '35%',
+    left: '50%',
+    width: 300,
+    height: 300,
+    marginLeft: -150,
+    borderRadius: 150,
+    opacity: 0.08,
+    filter: 'blur(100px)', // Web glow fallback
+    zIndex: 1,
+  },
+  slide: {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    paddingHorizontal: 24,
+    paddingTop: 80,
+  },
+  mediaSection: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  textSection: {
+    height: 300, // Fixed height area to avoid jumping
+    justifyContent: "flex-start",
+    paddingTop: 20,
+    paddingBottom: 100,
+  },
+  headline: {
+    fontSize: 54, // Massive
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: -2,
+    lineHeight: 56,
+    marginBottom: 16,
+  },
+  subtext: {
+    fontSize: 17,
+    fontWeight: "500",
+    color: "rgba(255,255,255,0.6)",
+    lineHeight: 26,
+    paddingRight: 40,
+  },
+  bottomGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 300,
+    zIndex: 15,
+  },
   footer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 24,
+    paddingHorizontal: 24,
     paddingBottom: 48,
+    zIndex: 20, // Above gradient
   },
   dotsContainer: {
     flexDirection: "row",
@@ -394,6 +382,52 @@ const styles = StyleSheet.create({
   },
   skipBtn: {
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingRight: 24, // Touch target
   },
+  skipText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "rgba(255,255,255,0.4)",
+    textTransform: "uppercase",
+    letterSpacing: 2,
+  },
+  nextBtnWrapper: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  nextBtn: {
+    height: 60,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 30,
+    paddingHorizontal: 32,
+  },
+  nextText: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#000",
+    letterSpacing: 0.5,
+  },
+  // Icon Media Styles
+  iconMediaContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ring: {
+    position: "absolute",
+    borderWidth: 2,
+  },
+  iconDisc: {
+    width: 120,
+    height: 120,
+    borderRadius: 40, // Squircle
+    alignItems: "center",
+    justifyContent: "center",
+  }
 });
