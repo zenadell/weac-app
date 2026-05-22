@@ -32,12 +32,12 @@
       "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndieHlha3Bmand0b3h3cWVmamFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3OTc1MTAsImV4cCI6MjA5NDM3MzUxMH0.9PkScP4sj8hLi0w3uDzdp8Z63dLan7mpUfaDGyDm1vI",
       "apiUrl": "https://waecprep-api.onrender.com",
       "eas": {
-        "projectId": "57cc8d94-afa8-41d1-9cae-53d8bf742947"
+        "projectId": "24e06256-274e-40d7-b24e-3d8a95ba603f"
       }
     },
-    "owner": "templeton_dc",
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "owner": "timple"
   }
 }
