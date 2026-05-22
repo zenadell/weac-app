@@ -23,19 +23,14 @@ function RadialItem({ child, index, count, radius, itemSize, scrollY }) {
       Extrapolation.EXTEND
     );
 
-    // This item's current angle including scroll rotation
-    // Start at top (12 o'clock = -90° in standard math)
     const currentAngleDeg = baseAngleDeg + scrollRotation - 90;
     const currentAngleRad = (currentAngleDeg * Math.PI) / 180;
 
-    // Position on the circle
     const x = radius * Math.cos(currentAngleRad);
     const y = radius * Math.sin(currentAngleRad);
 
-    // y < 0 means above center (visible), y > 0 means below center (hidden)
     const verticalProgress = y / radius; // -1 (top) to +1 (bottom)
 
-    // Smooth fade: fully visible at top, fade out toward bottom
     const opacity = interpolate(
       verticalProgress,
       [-1, -0.3, 0.2, 0.6],
@@ -43,7 +38,6 @@ function RadialItem({ child, index, count, radius, itemSize, scrollY }) {
       Extrapolation.CLAMP
     );
 
-    // Scale: biggest at top, smaller toward bottom
     const scale = interpolate(
       verticalProgress,
       [-1, -0.5, 0, 0.5],
@@ -51,7 +45,6 @@ function RadialItem({ child, index, count, radius, itemSize, scrollY }) {
       Extrapolation.CLAMP
     );
 
-    // Z-ordering: items at top should be in front
     const zIndex = Math.round(
       interpolate(verticalProgress, [-1, 1], [100, 0], Extrapolation.CLAMP)
     );
@@ -73,13 +66,6 @@ function RadialItem({ child, index, count, radius, itemSize, scrollY }) {
 
 /**
  * RadialScrollGallery
- *
- * Displays children in a circular arc. Rotation is driven by the
- * `scrollY` shared value. The circle center is pushed downward so
- * only the top arc is visible (like a Ferris wheel).
- *
- * This component does NOT scroll itself — it just renders the wheel.
- * The parent is responsible for capturing gestures and feeding scrollY.
  */
 export function RadialScrollGallery({
   children,
@@ -90,7 +76,6 @@ export function RadialScrollGallery({
   const childrenArray = React.Children.toArray(children);
   const count = childrenArray.length;
 
-  // Container height: show roughly the top 55% of the circle + item overflow
   const containerHeight = radius * 1.2 + itemSize;
 
   return (
@@ -98,20 +83,15 @@ export function RadialScrollGallery({
       style={{
         width: '100%',
         height: containerHeight,
-        // NO overflow hidden — let cards bleed to edges naturally
         alignItems: 'center',
         justifyContent: 'flex-end',
       }}
     >
-      {/* 
-        The origin point. Positioned at the bottom-center of the container.
-        Items radiate outward from here in a circle.
-      */}
       <View
         style={{
           width: 0,
           height: 0,
-          marginBottom: -(radius * 0.35), // Push center slightly below container
+          marginBottom: -(radius * 0.35),
         }}
       >
         {childrenArray.map((child, index) => (
