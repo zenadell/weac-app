@@ -1,12 +1,13 @@
 // 1:1 port of src/routes/tutor.tsx
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { MotiView, AnimatePresence } from "moti";
 import { useNavigation } from "@react-navigation/native";
 import { ArrowLeft, Send, Sparkles } from "lucide-react-native";
 import AppShell from "../components/AppShell";
 import PageTransition from "../components/PageTransition";
-import Gradient from "../components/Gradient";
+import { GenerativeArtScene } from "../components/ui/anomalous-matter-hero";
+import { LinearGradient } from "expo-linear-gradient";
 
 const seed = [
   { id: 1, role: "ai", text: "Hey Ayo 👋 I'm Nova, your WAEC tutor. What should we crack today?" },
@@ -59,41 +60,47 @@ export default function TutorScreen() {
   return (
     <AppShell hideNav>
       <PageTransition>
+        
+        {/* Generative 3D AI Brain Background */}
+        <GenerativeArtScene style={StyleSheet.absoluteFillObject} />
+
+        {/* Subtle Dark Gradient Overlay for text readability */}
+        <LinearGradient
+          colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.8)']}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
+
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1 }}
         >
-          <View className="flex-row items-center justify-between px-6 pt-12 pb-4">
+          {/* Header */}
+          <View className="flex-row items-center justify-between px-6 pt-12 pb-4 z-10">
             <Pressable
               onPress={() => navigation.navigate("Home")}
-              className="size-11 items-center justify-center rounded-2xl bg-white border border-black/5"
+              className="size-11 items-center justify-center rounded-2xl bg-white/10 border border-white/20"
               style={shadowSoft}
             >
-              <ArrowLeft size={20} color="#1B1A2E" strokeWidth={2.4} />
+              <ArrowLeft size={20} color="#FFFFFF" strokeWidth={2.4} />
             </Pressable>
-            <View className="flex-row items-center gap-2">
-              <MotiView
-                from={{ scale: 1, rotate: "0deg" }}
-                animate={{ scale: 1.08, rotate: "360deg" }}
-                transition={{ loop: true, type: "timing", duration: 12000 }}
-              >
-                <Gradient name="lilac" className="size-9 rounded-full" style={shadowSoft} />
-              </MotiView>
+            <View className="flex-row items-center gap-3">
               <View>
-                <Text className="text-sm font-semibold leading-none text-ink">Nova</Text>
-                <Text className="text-[10px] text-muted-foreground">AI tutor · online</Text>
+                <Text className="text-base font-bold text-white text-right">Nova AI</Text>
+                <Text className="text-[11px] text-sky-300 font-semibold uppercase tracking-wider text-right">Online</Text>
               </View>
             </View>
             <View className="size-11" />
           </View>
 
+          {/* Chat List */}
           <ScrollView
             ref={scrollRef}
-            className="flex-1 px-6 pb-6"
+            className="flex-1 px-6 pb-6 z-10"
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
           >
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: 16 }}>
               <AnimatePresence>
                 {msgs.map((m) => (
                   <MotiView
@@ -104,20 +111,16 @@ export default function TutorScreen() {
                     className={`flex-row ${m.role === "me" ? "justify-end" : "justify-start"}`}
                   >
                     <View
-                      className={`max-w-[80%] rounded-3xl px-4 py-3 border border-black/5 ${
-                        m.role === "me" ? "" : "bg-white"
+                      className={`max-w-[85%] rounded-3xl px-5 py-4 border ${
+                        m.role === "me" 
+                          ? "bg-sky-500/20 border-sky-400/30" 
+                          : "bg-white/10 border-white/10"
                       }`}
                       style={[
                         shadowSoft,
-                        m.role === "me" ? { overflow: "hidden" } : undefined,
                       ]}
                     >
-                      {m.role === "me" && (
-                        <View className="absolute inset-0">
-                          <Gradient name="peach" className="absolute inset-0" />
-                        </View>
-                      )}
-                      <Text className={`text-[0.95rem] leading-snug ${m.role === "me" ? "text-white" : "text-ink"}`} style={{ fontSize: 15 }}>
+                      <Text className="text-[0.95rem] leading-relaxed text-white font-medium" style={{ fontSize: 15 }}>
                         {m.text}
                       </Text>
                     </View>
@@ -128,14 +131,14 @@ export default function TutorScreen() {
                     from={{ opacity: 0, translateY: 6 }} animate={{ opacity: 1, translateY: 0 }} exit={{ opacity: 0 }}
                     className="flex-row justify-start"
                   >
-                    <View className="flex-row items-center gap-1.5 rounded-3xl bg-white px-5 py-4 border border-black/5" style={shadowSoft}>
+                    <View className="flex-row items-center gap-2 rounded-3xl bg-white/10 px-5 py-4 border border-white/10" style={shadowSoft}>
                       {[0, 1, 2].map((i) => (
                         <MotiView
                           key={i}
                           from={{ translateY: 0, opacity: 0.4 }}
                           animate={{ translateY: -5, opacity: 1 }}
                           transition={{ loop: true, type: "timing", duration: 900, delay: i * 150 }}
-                          className="size-2 rounded-full bg-royal"
+                          className="size-2 rounded-full bg-sky-300"
                         />
                       ))}
                     </View>
@@ -145,37 +148,38 @@ export default function TutorScreen() {
             </View>
           </ScrollView>
 
-          <View className="px-6 pb-8" style={{ gap: 12 }}>
+          {/* Input Area */}
+          <View className="px-6 pb-8 z-10" style={{ gap: 16 }}>
             {msgs.length <= 1 && (
               <View className="flex-row flex-wrap" style={{ gap: 8 }}>
                 {suggestions.map((s) => (
                   <Pressable
                     key={s}
                     onPress={() => send(s)}
-                    className="flex-row items-center gap-1.5 rounded-full bg-white px-3 py-2 border border-black/5"
+                    className="flex-row items-center gap-1.5 rounded-full bg-black/40 px-4 py-3 border border-white/15"
                     style={shadowSoft}
                   >
-                    <Sparkles size={12} color="#9575CD" />
-                    <Text className="text-xs font-medium text-ink">{s}</Text>
+                    <Sparkles size={14} color="#7dd3fc" />
+                    <Text className="text-[13px] font-semibold text-white">{s}</Text>
                   </Pressable>
                 ))}
               </View>
             )}
-            <View className="flex-row items-center gap-2 rounded-2xl bg-white p-2 border border-black/5" style={shadowPop}>
+            <View className="flex-row items-center gap-2 rounded-3xl bg-black/50 p-2 border border-white/20" style={shadowPop}>
               <TextInput
                 value={input}
                 onChangeText={setInput}
                 placeholder="Ask Nova anything…"
-                placeholderTextColor="#7B7995"
-                className="flex-1 px-3 text-sm text-ink"
+                placeholderTextColor="rgba(255,255,255,0.4)"
+                className="flex-1 px-4 text-[15px] font-medium text-white h-12"
                 onSubmitEditing={() => send(input)}
                 returnKeyType="send"
               />
               <Pressable
                 onPress={() => send(input)}
-                className="size-10 items-center justify-center rounded-xl bg-ink"
+                className="size-12 items-center justify-center rounded-full bg-sky-500"
               >
-                <Send size={16} color="#fff" />
+                <Send size={18} color="#fff" style={{ marginLeft: 2 }} />
               </Pressable>
             </View>
           </View>
@@ -185,5 +189,5 @@ export default function TutorScreen() {
   );
 }
 
-const shadowSoft = { shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 3 };
-const shadowPop = { shadowColor: "#000", shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.18, shadowRadius: 30, elevation: 10 };
+const shadowSoft = { shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 3 };
+const shadowPop = { shadowColor: "#000", shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.3, shadowRadius: 30, elevation: 10 };
