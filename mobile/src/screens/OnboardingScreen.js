@@ -205,20 +205,45 @@ export default function OnboardingScreen() {
       >
         {SLIDES.map((slide, index) => {
           const isActive = currentIndex === index;
+          
+          const animatedMediaStyle = useAnimatedStyle(() => {
+            const inputRange = [
+              (index - 1) * SCREEN_WIDTH,
+              index * SCREEN_WIDTH,
+              (index + 1) * SCREEN_WIDTH,
+            ];
+            const scale = interpolate(scrollX.value, inputRange, [0.8, 1, 0.8], Extrapolation.CLAMP);
+            const opacity = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
+            return {
+              opacity,
+              transform: [{ scale }],
+              width: "100%",
+              height: "100%",
+              justifyContent: "center",
+              alignItems: "center"
+            };
+          });
+
+          const animatedTextStyle = useAnimatedStyle(() => {
+            const inputRange = [
+              (index - 1) * SCREEN_WIDTH,
+              index * SCREEN_WIDTH,
+              (index + 1) * SCREEN_WIDTH,
+            ];
+            const translateY = interpolate(scrollX.value, inputRange, [50, 0, 50], Extrapolation.CLAMP);
+            const opacity = interpolate(scrollX.value, inputRange, [0, 1, 0], Extrapolation.CLAMP);
+            return {
+              opacity,
+              transform: [{ translateY }]
+            };
+          });
+
           return (
             <View key={slide.id} style={styles.slide}>
               
               {/* Media Section */}
               <View style={styles.mediaSection}>
-                <MotiView
-                  from={{ opacity: 0, scale: 0.8 }}
-                  animate={{
-                    opacity: isActive ? 1 : 0,
-                    scale: isActive ? 1 : 0.8,
-                  }}
-                  transition={{ type: "spring", damping: 18, stiffness: 280 }}
-                  style={{ width: "100%", height: "100%" }}
-                >
+                <Animated.View style={animatedMediaStyle}>
                   {slide.media === "custom" && (
                     <ScrollingAnimation scrollX={scrollX} index={index} />
                   )}
@@ -229,36 +254,18 @@ export default function OnboardingScreen() {
                       isActive={isActive}
                     />
                   )}
-                </MotiView>
+                </Animated.View>
               </View>
 
               {/* Text Section */}
-              <View style={styles.textSection}>
-                <MotiView
-                  from={{ opacity: 0, translateY: 40 }}
-                  animate={{
-                    opacity: isActive ? 1 : 0,
-                    translateY: isActive ? 0 : 40,
-                  }}
-                  transition={{ delay: 100, type: "spring", damping: 20 }}
-                >
-                  <Text style={styles.headline}>
-                    {slide.headline}
-                  </Text>
-                </MotiView>
-                <MotiView
-                  from={{ opacity: 0, translateY: 30 }}
-                  animate={{
-                    opacity: isActive ? 1 : 0,
-                    translateY: isActive ? 0 : 30,
-                  }}
-                  transition={{ delay: 200, type: "spring", damping: 20 }}
-                >
-                  <Text style={styles.subtext}>
-                    {slide.sub}
-                  </Text>
-                </MotiView>
-              </View>
+              <Animated.View style={[styles.textSection, animatedTextStyle]}>
+                <Text style={styles.headline}>
+                  {slide.headline}
+                </Text>
+                <Text style={styles.subtext}>
+                  {slide.sub}
+                </Text>
+              </Animated.View>
 
             </View>
           );
@@ -325,19 +332,18 @@ const styles = StyleSheet.create({
   slide: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
-    paddingHorizontal: 24,
-    paddingTop: 80,
+    paddingHorizontal: 28,
+    paddingTop: 60,
+    paddingBottom: 180, // Prevent overlapping with footer
   },
   mediaSection: {
-    flex: 1,
+    flex: 1.3,
     justifyContent: "center",
     alignItems: "center",
   },
   textSection: {
-    height: 300, // Fixed height area to avoid jumping
-    justifyContent: "flex-start",
-    paddingTop: 20,
-    paddingBottom: 100,
+    flex: 0.7, 
+    justifyContent: "center",
   },
   headline: {
     fontSize: 54, // Massive
